@@ -1,0 +1,165 @@
+"use client";
+
+import Link from "next/link";
+import { MenuIcon, X } from "lucide-react";
+import { useEffect, useState } from "react";
+
+import { toast } from "sonner";
+import { Button } from "../ui/button";
+import { UserData } from "@/types";
+import { clearLocalStorageCache, getUserData } from "@/lib/utils/cache";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
+
+export default function Header() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserData | null>(null);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  useEffect(() => {
+    const checkAndFetchUser = async () => {
+      const data = await getUserData();
+      setUser(data);
+    };
+
+    checkAndFetchUser();
+  }, []);
+
+  const logout = async () => {
+    try {
+      const res = await fetch("/api/auth/logout");
+      const data = await res.json();
+      if (data.success) {
+        await clearLocalStorageCache();
+        window.location.reload();
+        return "Successfully logged out";
+      } else if (data.error) {
+        throw new Error(data.error.message);
+      }
+    } catch (error) {
+      throw error instanceof Error
+        ? error.message
+        : new Error("Failed to logout");
+    }
+  };
+
+  return (
+    <header className="bg-white backdrop-blur absolute w-full top-0 z-40 px-4 border-b-inherit">
+      <div className="container flex h-16 items-center justify-between mx-auto">
+        <div className="flex items-center gap-2">
+          <Link href="/" className="flex items-center space-x-2">
+            <h2 className="text-2xl font-bold text-teal-600">We Hire</h2>
+          </Link>
+        </div>
+
+        <div className="hidden md:flex items-center gap-4">
+          {user ? (
+            <div className="flex items-center gap-4">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className="flex items-center gap-2 hover:bg-accent px-3 py-1 rounded-md cursor-pointer">
+                    <Avatar className="h-8 w-8 cursor-pointer">
+                      <AvatarFallback>
+                        {user.full_name[0] ?? "U"}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{user.full_name}</span>
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="p-0">
+                    <Link href="/jobs" className="w-full h-full px-2 py-1">
+                      All Jobs
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      toast.promise(logout(), {
+                        loading: "Logging out...",
+                        success: "Successfully logged out",
+                        error: "Failed to logout",
+                      });
+                    }}
+                    className="bg-red-700/70! text-primary-foreground!"
+                  >
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          ) : (
+            <>
+              <Button className="font-medium" asChild>
+                <Link href="/auth/login">Sign In</Link>
+              </Button>
+            </>
+          )}
+        </div>
+
+        <div className="md:hidden flex items-center gap-2">
+          <Button asChild>
+            <Link href={user ? "/jobs" : "/auth/login"}>
+              {user ? "All Jobs" : "Sign In"}
+            </Link>
+          </Button>
+          <button
+            className="rounded-md hover:bg-muted"
+            onClick={toggleMenu}
+            aria-label={"toggle menu"}
+          >
+            {isMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <MenuIcon className="h-6 w-6" />
+            )}
+          </button>
+        </div>
+      </div>
+
+      {isMenuOpen && (
+        <div className="md:hidden absolute top-16 inset-x-0 z-50 bg-background border-b border-border py-4 shadow-lg">
+          <div className="container space-y-4">
+            <nav className="flex flex-col space-y-4 px-4">
+              {user && (
+                <Link
+                  href="/jobs"
+                  className="text-base font-medium p-2 hover:bg-muted rounded-md flex items-center"
+                >
+                  <span>All Jobs</span>
+                </Link>
+              )}
+
+              {user && (
+                <Button
+                  onClick={() => {
+                    toast.promise(logout(), {
+                      loading: "Logging out...",
+                      success: "Successfully logged out",
+                      error: "Failed to logout",
+                    });
+                  }}
+                  className="bg-red-700/70! text-primary-foreground!"
+                >
+                  Logout
+                </Button>
+              )}
+            </nav>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}
