@@ -63,8 +63,8 @@ export default function RegisterClient() {
   };
 
   return (
-    <section className="flex h-screen w-full items-center bg-muted py-16">
-      <main className="mx-auto w-full max-w-md p-6">
+    <section className="flex h-[calc(100vh-4rem)] w-full items-center bg-muted py-16">
+      <main className="mx-auto w-full max-w-md p-6 md:p-3">
         <div className="mt-7 rounded-xl border border-border bg-accent/40 shadow-sm">
           <div className="p-4 sm:p-7">
             <div className="text-center">

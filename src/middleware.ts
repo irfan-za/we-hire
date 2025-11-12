@@ -12,6 +12,9 @@ export async function middleware(req: NextRequest) {
   if (!user && pathname.startsWith("/jobs")) {
     const url = new URL(`/auth/login`, req.url);
     return NextResponse.redirect(url.href);
+  } else if (user && pathname.startsWith("/auth")) {
+    const url = new URL(`/jobs`, req.url);
+    return NextResponse.redirect(url.href);
   }
   return NextResponse.next();
 }

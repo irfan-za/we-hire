@@ -40,6 +40,7 @@ export default function LoginClient() {
       }),
     });
     const { error } = await res.json();
+    console.log(error);
     if (!error) {
       await clearLocalStorageCache();
       router.replace("/jobs");
@@ -58,7 +59,7 @@ export default function LoginClient() {
   };
 
   return (
-    <section className="flex h-screen w-full items-center bg-muted py-16">
+    <section className="flex h-[calc(100vh-4rem)]  w-full items-center bg-muted py-16">
       <main className="mx-auto w-full max-w-md p-6">
         <div className="mt-7 rounded-xl border border-border bg-accent/40 shadow-sm">
           <div className="p-4 sm:p-7">

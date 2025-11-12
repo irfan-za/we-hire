@@ -9,5 +9,5 @@ export async function POST(req: Request): Promise<Response> {
     email,
     password,
   });
-  return NextResponse.json({ error });
+  return NextResponse.json({ error }, { status: error?.status });
 }

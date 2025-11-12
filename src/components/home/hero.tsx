@@ -46,7 +46,7 @@ export default function Hero() {
         <div className="flex-1 flex justify-center sm:justify-end sm:pr-6">
           <div className="relative w-64 h-64 md:w-72 lg:w-96 md:h-72 lg:h-96 max-w-md lg:max-w-lg">
             <Image
-              src="/hero.png"
+              src="/images/hero.png"
               alt="We Hire - Platform for managing hiring processes"
               fill
               className="object-contain"
