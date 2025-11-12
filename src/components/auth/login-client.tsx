@@ -40,7 +40,6 @@ export default function LoginClient() {
       }),
     });
     const { error } = await res.json();
-    console.log(error);
     if (!error) {
       await clearLocalStorageCache();
       router.replace("/jobs");

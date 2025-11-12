@@ -1,10 +1,15 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import CreateJobDialog from "@/components/jobs/create-job-dialog";
 import { Search } from "lucide-react";
 import Image from "next/image";
-import React from "react";
+import React, { useState } from "react";
 
-export default function page() {
+export default function JobsPage() {
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   return (
     <div className="min-h-[calc(100vh-4rem)] grid grid-cols-10 p-3 gap-3">
       <div className="col-span-7 flex flex-col items-center justify-center">
@@ -33,10 +38,14 @@ export default function page() {
               Create a job opening now and start the candidate process.
             </p>
           </div>
-          <Button className="cursor-pointer px-8 bg-secondary hover:bg-secondary">
+          <Button
+            className="cursor-pointer px-8 bg-secondary hover:bg-secondary"
+            onClick={() => setIsDialogOpen(true)}
+          >
             Create a new job
           </Button>
         </div>
+        <CreateJobDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
       </div>
       <div className="col-span-3">
         <div className="flex flex-col rounded-lg relative h-36 p-2">
@@ -55,7 +64,10 @@ export default function page() {
               Create jobs, invite, and hire with ease
             </p>
           </div>
-          <Button className="cursor-pointer w-fit px-12 mt-6 mx-auto">
+          <Button
+            className="cursor-pointer w-fit px-12 mt-6 mx-auto"
+            onClick={() => setIsDialogOpen(true)}
+          >
             Create a new job
           </Button>
         </div>
