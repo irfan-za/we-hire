@@ -105,35 +105,6 @@ export function useDeleteJob() {
   });
 }
 
-export function useDeleteJobs() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (jobIds: string[]) => {
-      const deletePromises = jobIds.map(async (jobId) => {
-        const response = await fetch(`/api/jobs/${jobId}`, {
-          method: "DELETE",
-        });
-
-        if (!response.ok) {
-          throw new Error(`Failed to delete job ID: ${jobId}`);
-        }
-
-        return response.json();
-      });
-
-      return Promise.all(deletePromises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["jobs"] });
-      toast.success("Jobs deleted successfully");
-    },
-    onError: (error: Error) => {
-      toast.error(error.message || "Failed to delete jobs");
-    },
-  });
-}
-
 export function useCreateJob() {
   const queryClient = useQueryClient();
 
