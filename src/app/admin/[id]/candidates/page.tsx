@@ -2,6 +2,7 @@ import CandidatesTable from "@/components/candidate/candidates-table";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
+import { Suspense } from "react";
 
 interface PageProps {
   params: Promise<{
@@ -59,7 +60,9 @@ export default async function ManageCandidatesPage({ params }: PageProps) {
 
   return (
     <div className="container mx-auto py-10">
-      <CandidatesTable jobId={id} jobTitle={candidates[0]?.job_id?.title} />
+      <Suspense>
+        <CandidatesTable jobId={id} jobTitle={candidates[0]?.job_id?.title} />
+      </Suspense>
     </div>
   );
 }

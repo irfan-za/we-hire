@@ -1,6 +1,10 @@
 import JobsList from "@/components/job/job-list";
-import React from "react";
+import React, { Suspense } from "react";
 
 export default async function AdminPage() {
-  return <JobsList />;
+  return (
+    <Suspense>
+      <JobsList />
+    </Suspense>
+  );
 }
