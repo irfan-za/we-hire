@@ -7,6 +7,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
 
     const jobId = searchParams.get("job_id");
+    const gender = searchParams.get("gender");
+    const sortBy = searchParams.get("sort_by") || "created_at";
+    const sortOrder = searchParams.get("sort_order") || "desc";
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
 
     if (!jobId) {
       return NextResponse.json(
@@ -15,21 +20,39 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const { data, error } = await supabase
+    const offset = (page - 1) * limit;
+
+    let query = supabase
       .from("candidates")
       .select(
-        "id,full_name,email,phone,date_of_birth,domicile,gender,linkedin_link)"
+        "id,full_name,email,phone,date_of_birth,domicile,gender,linkedin_link",
+        { count: "exact" }
       )
-      .eq("job_id", jobId)
-      .order("created_at", { ascending: false });
+      .eq("job_id", jobId);
+
+    if (gender) {
+      query = query.eq("gender", gender);
+    }
+
+    const { data, error, count } = await query
+      .order(sortBy, { ascending: sortOrder === "asc" })
+      .range(offset, offset + limit - 1);
 
     if (error) {
       throw error;
     }
 
+    const totalPages = Math.ceil((count || 0) / limit);
+
     return NextResponse.json(
       {
-        data,
+        data: data || [],
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages,
+        },
       },
       { status: 200 }
     );

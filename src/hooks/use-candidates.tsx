@@ -9,19 +9,42 @@ export type Candidate = {
   date_of_birth: string;
   domicile: string;
   gender: string;
-  linkedin_url: string | null;
+  linkedin_link: string | null;
   created_at: string;
 };
 
-interface CandidatesResponse {
-  data: Candidate[];
+interface CandidatesQueryParams {
+  gender?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  page?: number;
+  limit?: number;
 }
 
-export function useCandidates(jobId: string) {
+interface CandidatesResponse {
+  data: Candidate[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export function useCandidates(jobId: string, params: CandidatesQueryParams = {}) {
   return useQuery<CandidatesResponse>({
-    queryKey: ["candidates", jobId],
+    queryKey: ["candidates", jobId, params],
     queryFn: async () => {
-      const response = await fetch(`/api/candidates?job_id=${jobId}`);
+      const searchParams = new URLSearchParams();
+      searchParams.set("job_id", jobId);
+
+      if (params.gender) searchParams.set("gender", params.gender);
+      if (params.sortBy) searchParams.set("sort_by", params.sortBy);
+      if (params.sortOrder) searchParams.set("sort_order", params.sortOrder);
+      if (params.page) searchParams.set("page", params.page.toString());
+      if (params.limit) searchParams.set("limit", params.limit.toString());
+
+      const response = await fetch(`/api/candidates?${searchParams.toString()}`);
 
       if (!response.ok) {
         const errorData = await response.json();
