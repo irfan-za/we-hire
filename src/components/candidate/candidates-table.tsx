@@ -9,11 +9,21 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useCandidates, useDeleteCandidate } from "@/hooks/use-candidates";
-import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
-import { useState } from "react";
+import {
+  useCandidates,
+  useDeleteCandidate,
+  type Candidate,
+} from "@/hooks/use-candidates";
+import {
+  LoaderCircle,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  GripVertical,
+} from "lucide-react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import {
   Select,
@@ -31,12 +41,95 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { BulkActions } from "./bulk-actions";
+import {
+  useReactTable,
+  getCoreRowModel,
+  flexRender,
+  type ColumnDef,
+  type ColumnOrderState,
+  type ColumnSizingState,
+  type VisibilityState,
+} from "@tanstack/react-table";
+import {
+  DndContext,
+  KeyboardSensor,
+  MouseSensor,
+  TouchSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  horizontalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface CandidatesTableProps {
   jobId: string;
   jobTitle: string;
 }
 type SortOrder = "asc" | "desc";
+
+const STORAGE_KEY = "candidates-table-state";
+
+function DraggableTableHead({ header }: { header: any }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: header.column.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.8 : 1,
+    position: "relative" as const,
+    width: header.getSize(),
+  };
+
+  return (
+    <TableHead
+      ref={setNodeRef}
+      style={style}
+      className={cn("relative group", isDragging && "z-50")}
+    >
+      <div className="flex items-center gap-1">
+        <button
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Drag to reorder"
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+        <div className="flex-1">
+          {flexRender(header.column.columnDef.header, header.getContext())}
+        </div>
+        {header.column.getCanResize() && (
+          <div
+            onMouseDown={header.getResizeHandler()}
+            onTouchStart={header.getResizeHandler()}
+            className={cn(
+              "absolute right-0 top-0 h-full w-1 cursor-col-resize select-none touch-none",
+              "hover:bg-blue-500 active:bg-blue-600",
+              header.column.getIsResizing() && "bg-blue-600"
+            )}
+          />
+        )}
+      </div>
+    </TableHead>
+  );
+}
+
 export default function CandidatesTable({
   jobId,
   jobTitle,
@@ -46,6 +139,59 @@ export default function CandidatesTable({
   const searchParams = useSearchParams();
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+
+  const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => {
+    if (typeof window === "undefined") return [];
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const { columnOrder } = JSON.parse(saved);
+        return columnOrder || [];
+      } catch (e) {
+        return [];
+      }
+    }
+    return [];
+  });
+
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>(() => {
+    if (typeof window === "undefined") return {};
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const { columnSizing } = JSON.parse(saved);
+        return columnSizing || {};
+      } catch (e) {
+        return {};
+      }
+    }
+    return {};
+  });
+
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    () => {
+      if (typeof window === "undefined") return {};
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const { columnVisibility } = JSON.parse(saved);
+          return columnVisibility || {};
+        } catch (e) {
+          return {};
+        }
+      }
+      return {};
+    }
+  );
+
+  useEffect(() => {
+    if (columnOrder.length > 0) {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ columnOrder, columnSizing, columnVisibility })
+      );
+    }
+  }, [columnOrder, columnSizing, columnVisibility]);
 
   const genderParam = searchParams.get("gender") || "";
   const pageParam = parseInt(searchParams.get("page") || "1");
@@ -87,44 +233,29 @@ export default function CandidatesTable({
     setIsDeletingBulk(false);
   };
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates(candidates.map((c) => c.id));
-    } else {
-      setSelectedCandidates([]);
-    }
-  };
+  const updateParams = useCallback(
+    (updates: Record<string, string | null>) => {
+      const params = new URLSearchParams(searchParams.toString());
 
-  const handleSelectCandidate = (candidateId: string, checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates([...selectedCandidates, candidateId]);
-    } else {
-      setSelectedCandidates(
-        selectedCandidates.filter((id) => id !== candidateId)
-      );
-    }
-  };
+      Object.entries(updates).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          params.set(key, value);
+        } else {
+          params.delete(key);
+        }
+      });
 
-  const updateParams = (updates: Record<string, string | null>) => {
-    const params = new URLSearchParams(searchParams.toString());
-
-    Object.entries(updates).forEach(([key, value]) => {
-      if (value !== null && value !== undefined) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
+      if (
+        !updates.page &&
+        (updates.gender !== undefined || updates.limit !== undefined)
+      ) {
+        params.set("page", "1");
       }
-    });
 
-    if (
-      !updates.page &&
-      (updates.gender !== undefined || updates.limit !== undefined)
-    ) {
-      params.set("page", "1");
-    }
-
-    router.push(`${pathname}?${params.toString()}`);
-  };
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [searchParams, router, pathname]
+  );
 
   const handleGenderChange = (value: string) => {
     updateParams({ gender: value === "all" ? null : value, page: "1" });
@@ -140,12 +271,188 @@ export default function CandidatesTable({
     setSelectedCandidates([]);
   };
 
-  const handleToggleSortFullName = () => {
+  const handleToggleSortFullName = useCallback(() => {
     if (sortByParam !== "full_name") {
       updateParams({ sort_by: "full_name", sort_order: "asc", page: "1" });
     } else {
       const next = sortOrderParam === "asc" ? "desc" : "asc";
       updateParams({ sort_by: "full_name", sort_order: next, page: "1" });
+    }
+  }, [sortByParam, sortOrderParam, updateParams]);
+
+  const columns = useMemo<ColumnDef<Candidate>[]>(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getRowModel().rows.length > 0 &&
+              table.getIsAllRowsSelected()
+            }
+            onCheckedChange={(value) => table.toggleAllRowsSelected(!!value)}
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            className="ml-7 mr-4 border-2"
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+          />
+        ),
+        size: 50,
+        enableResizing: false,
+        enableSorting: false,
+      },
+      {
+        accessorKey: "full_name",
+        id: "full_name",
+        header: () => (
+          <button
+            type="button"
+            className="flex items-center gap-2"
+            onClick={handleToggleSortFullName}
+          >
+            <span>FULL NAME</span>
+            {sortByParam === "full_name" ? (
+              sortOrderParam === "asc" ? (
+                <ArrowUp className="h-4 w-4" />
+              ) : (
+                <ArrowDown className="h-4 w-4" />
+              )
+            ) : (
+              <ArrowUpDown className="h-4 w-4 opacity-60" />
+            )}
+          </button>
+        ),
+        cell: ({ getValue }) => (
+          <div className="font-medium">{getValue() as string}</div>
+        ),
+        size: 200,
+      },
+      {
+        accessorKey: "email",
+        id: "email",
+        header: "EMAIL ADDRESS",
+        cell: ({ getValue }) => <div>{getValue() as string}</div>,
+        size: 250,
+      },
+      {
+        accessorKey: "phone",
+        id: "phone",
+        header: "PHONE NUMBERS",
+        cell: ({ getValue }) => <div>{(getValue() as string) ?? "-"}</div>,
+        size: 150,
+      },
+      {
+        accessorKey: "date_of_birth",
+        id: "date_of_birth",
+        header: "DATE OF BIRTH",
+        cell: ({ getValue }) => (
+          <div>{formatDate(getValue() as string) ?? "-"}</div>
+        ),
+        size: 150,
+      },
+      {
+        accessorKey: "domicile",
+        id: "domicile",
+        header: "DOMICILE",
+        cell: ({ getValue }) => (
+          <div className="truncate max-w-[200px]">
+            {(getValue() as string) ?? "-"}
+          </div>
+        ),
+        size: 200,
+      },
+      {
+        accessorKey: "gender",
+        id: "gender",
+        header: "GENDER",
+        cell: ({ getValue }) => (
+          <div className="capitalize">{(getValue() as string) ?? "-"}</div>
+        ),
+        size: 120,
+      },
+      {
+        accessorKey: "linkedin_link",
+        id: "linkedin_link",
+        header: "LINK LINKEDIN",
+        cell: ({ getValue }) => {
+          const link = getValue() as string | null;
+          return link ? (
+            <Link
+              href={link}
+              target="_blank"
+              className="text-blue-600 hover:underline truncate block max-w-[200px]"
+            >
+              {link}
+            </Link>
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          );
+        },
+        size: 250,
+      },
+    ],
+    [sortByParam, sortOrderParam, handleToggleSortFullName]
+  );
+
+  const sensors = useSensors(
+    useSensor(MouseSensor, {}),
+    useSensor(TouchSensor, {}),
+    useSensor(KeyboardSensor, {})
+  );
+
+  const table = useReactTable({
+    data: candidates,
+    columns,
+    state: {
+      columnOrder,
+      columnSizing,
+      columnVisibility,
+      rowSelection: selectedCandidates.reduce((acc, id) => {
+        acc[id] = true;
+        return acc;
+      }, {} as Record<string, boolean>),
+    },
+    enableRowSelection: true,
+    onColumnOrderChange: setColumnOrder,
+    onColumnSizingChange: setColumnSizing,
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: (updater) => {
+      const newSelection =
+        typeof updater === "function"
+          ? updater(
+              selectedCandidates.reduce((acc, id) => {
+                acc[id] = true;
+                return acc;
+              }, {} as Record<string, boolean>)
+            )
+          : updater;
+      setSelectedCandidates(
+        Object.keys(newSelection).filter((id) => newSelection[id])
+      );
+    },
+    getCoreRowModel: getCoreRowModel(),
+    columnResizeMode: "onChange",
+    getRowId: (row) => row.id,
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (active && over && active.id !== over.id) {
+      const oldIndex = table
+        .getAllLeafColumns()
+        .findIndex((col) => col.id === active.id);
+      const newIndex = table
+        .getAllLeafColumns()
+        .findIndex((col) => col.id === over.id);
+      const newColumnOrder = arrayMove(
+        table.getAllLeafColumns().map((col) => col.id),
+        oldIndex,
+        newIndex
+      );
+      setColumnOrder(newColumnOrder);
     }
   };
 
@@ -200,89 +507,58 @@ export default function CandidatesTable({
         </div>
       </div>
 
-      <div className="border rounded-lg">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={
-                    candidates.length > 0 &&
-                    selectedCandidates.length === candidates.length
-                  }
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
-              <TableHead>
-                <button
-                  type="button"
-                  className="flex items-center gap-2"
-                  onClick={handleToggleSortFullName}
-                >
-                  <span>FULL NAME</span>
-                  {sortByParam === "full_name" ? (
-                    sortOrderParam === "asc" ? (
-                      <ArrowUp className="h-4 w-4" />
-                    ) : (
-                      <ArrowDown className="h-4 w-4" />
-                    )
-                  ) : (
-                    <ArrowUpDown className="h-4 w-4 opacity-60" />
-                  )}
-                </button>
-              </TableHead>
-              <TableHead>EMAIL ADDRESS</TableHead>
-              <TableHead>PHONE NUMBERS</TableHead>
-              <TableHead>DATE OF BIRTH</TableHead>
-              <TableHead>DOMICILE</TableHead>
-              <TableHead>GENDER</TableHead>
-              <TableHead>LINK LINKEDIN</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {candidates.length > 0 &&
-              candidates.map((candidate) => (
-                <TableRow key={candidate.id}>
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onCheckedChange={(checked) =>
-                        handleSelectCandidate(candidate.id, checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {candidate.full_name}
-                  </TableCell>
-                  <TableCell>{candidate.email}</TableCell>
-                  <TableCell>{candidate.phone ?? "-"}</TableCell>
-                  <TableCell>
-                    {formatDate(candidate.date_of_birth) ?? "-"}
-                  </TableCell>
-                  <TableCell className="truncate block max-w-[200px]">
-                    {candidate.domicile ?? "-"}
-                  </TableCell>
-                  <TableCell className="capitalize">
-                    {candidate.gender ?? "-"}
-                  </TableCell>
-                  <TableCell>
-                    {candidate.linkedin_link ? (
-                      <Link
-                        href={candidate.linkedin_link}
-                        target="_blank"
-                        className="text-blue-600 hover:underline truncate block max-w-[200px]"
-                      >
-                        {candidate.linkedin_link}
-                      </Link>
-                    ) : (
-                      <span className="text-muted-foreground">-</span>
-                    )}
-                  </TableCell>
+      <DndContext
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+        sensors={sensors}
+      >
+        <div className="border rounded-lg overflow-auto">
+          <Table style={{ width: table.getTotalSize() }}>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  <SortableContext
+                    items={headerGroup.headers.map((h) => h.column.id)}
+                    strategy={horizontalListSortingStrategy}
+                  >
+                    {headerGroup.headers.map((header) => (
+                      <DraggableTableHead key={header.id} header={header} />
+                    ))}
+                  </SortableContext>
                 </TableRow>
               ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow key={row.id}>
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        style={{ width: cell.column.getSize() }}
+                      >
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center"
+                  >
+                    No candidates found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </DndContext>
 
       {candidates.length > 0 && (
         <div className="flex flex-col sm:flex-row items-end md:items-center justify-between py-1 md:py-3 border-t gap-4">

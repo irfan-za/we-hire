@@ -97,7 +97,7 @@ export default function RegisterClient() {
                         type="text"
                         id="full_name"
                         {...register("full_name")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
                         aria-describedby="full_name-error"
                       />
                     </div>
@@ -123,7 +123,7 @@ export default function RegisterClient() {
                         type="email"
                         id="email"
                         {...register("email")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
                         aria-describedby="email-error"
                       />
                     </div>
@@ -149,7 +149,7 @@ export default function RegisterClient() {
                         type={passwordVisible ? "text" : "password"}
                         id="password"
                         {...register("password")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
                         aria-describedby="password-error"
                       />
                       <button
@@ -186,7 +186,7 @@ export default function RegisterClient() {
                         type={confirmPasswordVisible ? "text" : "password"}
                         id="confirmPassword"
                         {...register("confirmPassword")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
                         aria-describedby="confirmPassword-error"
                       />
                       <button
