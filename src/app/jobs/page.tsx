@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import CreateJobDialog from "@/components/jobs/create-job-dialog";
+import JobDialog from "@/components/jobs/job-dialog";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";
@@ -45,7 +45,7 @@ export default function JobsPage() {
             Create a new job
           </Button>
         </div>
-        <CreateJobDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+        <JobDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
       </div>
       <div className="col-span-3">
         <div className="flex flex-col rounded-lg relative h-36 p-2">

@@ -17,10 +17,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import CreateJobDialog from "@/components/jobs/create-job-dialog";
+import JobDialog from "@/components/jobs/job-dialog";
 import JobNotFound from "@/components/jobs/job-not-found";
 import JobCtaCard from "@/components/jobs/job-cta-card";
-import { useJobs } from "@/hooks/use-jobs";
+import JobCard from "@/components/jobs/job-card";
+import { useJobs, Job } from "@/hooks/use-jobs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { LoaderCircle, Plus, Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -28,6 +29,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 export default function JobList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingJob, setEditingJob] = useState<Job | undefined>(undefined);
   const [searchInput, setSearchInput] = useState("");
 
   const router = useRouter();
@@ -102,6 +104,11 @@ export default function JobList() {
     updateParams({ limit: value, page: "1" });
   };
 
+  const handleManageClick = (job: Job) => {
+    setEditingJob(job);
+    setIsDialogOpen(true);
+  };
+
   useEffect(() => {
     setSearchInput(searchQuery);
   }, [searchQuery]);
@@ -115,13 +122,25 @@ export default function JobList() {
 
   return (
     <>
-      <CreateJobDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
+      <JobDialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          setIsDialogOpen(open);
+          if (!open) {
+            setEditingJob(undefined);
+          }
+        }}
+        job={editingJob}
+      />
       <div className="min-h-[calc(100vh-4rem)] grid md:grid-cols-10 p-3 gap-3 lg:gap-6 container mx-auto">
         <div className="md:col-span-6 lg:col-span-7 flex flex-col items-center">
           <div className="w-full mb-4 space-y-4">
             <Button
               className="cursor-pointer px-6 md:hidden ml-auto flex "
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => {
+                setEditingJob(undefined);
+                setIsDialogOpen(true);
+              }}
             >
               <Plus className=" h-4 w-4" />
               Create a new job
@@ -187,24 +206,20 @@ export default function JobList() {
               searchQuery={searchQuery}
               typeFilter={typeFilter}
               statusFilter={statusFilter}
-              onCreateClick={() => setIsDialogOpen(true)}
+              onCreateClick={() => {
+                setEditingJob(undefined);
+                setIsDialogOpen(true);
+              }}
             />
           ) : (
             <div className="w-full space-y-4 flex-1 flex flex-col justify-between">
               <div className="space-y-4">
                 {jobs.map((job) => (
-                  <div
+                  <JobCard
                     key={job.id}
-                    className="border rounded-lg p-4 hover:shadow-md transition-shadow"
-                  >
-                    <h3 className="text-lg font-semibold">{job.title}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {job.type} • {job.status}
-                    </p>
-                    <p className="mt-2 text-sm line-clamp-2">
-                      {job.description}
-                    </p>
-                  </div>
+                    job={job}
+                    onManageClick={handleManageClick}
+                  />
                 ))}
               </div>
 
@@ -327,7 +342,12 @@ export default function JobList() {
           )}
         </div>
         {/* right side */}
-        <JobCtaCard onCreateClick={() => setIsDialogOpen(true)} />
+        <JobCtaCard
+          onCreateClick={() => {
+            setEditingJob(undefined);
+            setIsDialogOpen(true);
+          }}
+        />
       </div>
     </>
   );

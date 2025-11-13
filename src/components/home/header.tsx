@@ -59,7 +59,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white backdrop-blur w-full z-40 px-4 border-b-inherit">
+    <header className="bg-white sticky top-0 backdrop-blur w-full z-40 px-4 border-b-inherit">
       <div className="container flex h-16 items-center justify-between mx-auto">
         <div className="flex items-center gap-2">
           {pathname.startsWith("/jobs") ? (

@@ -14,3 +14,13 @@ export function generateSlug(title: string): string {
     .replace(/--+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
+
+export function formatIDR(amount: number | string): string {
+  const value = typeof amount === "string" ? Number(amount) : amount;
+  if (Number.isNaN(value) || value === null || value === undefined)
+    return "Rp 0";
+  const formatted = new Intl.NumberFormat("id-ID", {
+    maximumFractionDigits: 0,
+  }).format(value);
+  return `Rp ${formatted}`;
+}

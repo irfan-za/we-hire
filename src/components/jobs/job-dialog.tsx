@@ -18,46 +18,45 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { generateSlug } from "@/lib/utils";
-import { createJobSchema, CreateJobFormData } from "@/schemas/job";
+import { jobSchema, JobFormData } from "@/schemas/job";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { useUpdateJob, Job } from "@/hooks/use-jobs";
 
-interface CreateJobDialogProps {
+interface JobDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  job?: Job;
 }
 
 type Config = {
-  name: string;
   key: string;
   status: "mandatory" | "optional" | "off";
 };
 
-const configFields = [
-  { key: "full-name", name: "Full Name" },
-  { key: "photo-profile", name: "Photo Profile" },
-  { key: "gender", name: "Gender" },
-  { key: "domicile", name: "Domicile" },
-  { key: "email", name: "Email" },
-  { key: "phone-number", name: "Phone Number" },
-  { key: "linkedin-link", name: "LinkedIn" },
+const configFields: Config[] = [
+  { key: "full-name", status: "mandatory" },
+  { key: "photo-profile", status: "mandatory" },
+  { key: "gender", status: "mandatory" },
+  { key: "domicile", status: "mandatory" },
+  { key: "email", status: "mandatory" },
+  { key: "phone-number", status: "mandatory" },
+  { key: "linkedin-link", status: "mandatory" },
 ];
 
-export default function CreateJobDialog({
+export default function JobDialog({
   open,
   onOpenChange,
-}: CreateJobDialogProps) {
+  job: existingJob,
+}: JobDialogProps) {
   const [loading, setLoading] = useState(false);
-  const [config, setConfig] = useState<Config[]>(
-    configFields.map((config) => ({
-      name: config.name,
-      key: config.key,
-      status: "mandatory",
-    }))
-  );
+  const [config, setConfig] = useState<Config[]>(configFields);
+
+  const isEditMode = !!existingJob;
+  const { mutate: updateJob } = useUpdateJob();
   const mandatoryIndexes = [0, 1, 4];
 
   const {
@@ -66,8 +65,8 @@ export default function CreateJobDialog({
     setValue,
     formState: { errors },
     reset,
-  } = useForm<CreateJobFormData>({
-    resolver: zodResolver(createJobSchema),
+  } = useForm<JobFormData>({
+    resolver: zodResolver(jobSchema),
     defaultValues: {
       config: config,
     },
@@ -80,46 +79,96 @@ export default function CreateJobDialog({
     setValue("config", updated);
   };
 
-  const onSubmit = async (data: CreateJobFormData) => {
+  const handleFieldChange = <K extends keyof JobFormData>(
+    field: K,
+    value: JobFormData[K]
+  ) => {
+    setValue(field, value as any);
+  };
+
+  useEffect(() => {
+    if (isEditMode && existingJob && open) {
+      const populatedConfig = existingJob.config
+        ? configFields.map((field) => {
+            const existingField = existingJob.config?.find(
+              (c: any) => c.key === field.key
+            );
+            return {
+              key: field.key,
+              status: existingField?.status || "mandatory",
+            };
+          })
+        : config;
+
+      setConfig(populatedConfig);
+
+      reset({
+        title: existingJob.title,
+        type: existingJob.type,
+        description: existingJob.description,
+        startedAt: existingJob.started_at.split("T")[0],
+        endedAt: existingJob.ended_at.split("T")[0],
+        minSalary: existingJob.salary_range?.min,
+        maxSalary: existingJob.salary_range?.max,
+        config: populatedConfig,
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isEditMode, existingJob, open]);
+
+  const onSubmit = async (data: JobFormData) => {
     setLoading(true);
 
     try {
       const slug = generateSlug(data.title);
+      const payload = { ...data, slug };
 
-      const res = await fetch("/api/jobs", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          ...data,
-          slug,
-        }),
-      });
+      if (isEditMode && existingJob) {
+        // Update existing job
+        updateJob(
+          { jobId: existingJob.id, jobData: payload },
+          {
+            onSuccess: () => {
+              reset();
+              setConfig(configFields);
+              onOpenChange(false);
+            },
+          }
+        );
+      } else {
+        // Create new job
+        const res = await fetch("/api/jobs", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
 
-      const result = await res.json();
+        const result = await res.json();
 
-      if (!res.ok) {
-        throw new Error(result.error || "Failed to create job");
+        if (!res.ok) {
+          throw new Error(result.error || "Failed to create job");
+        }
+
+        toast.success("Job Created Successfully");
+
+        reset();
+        setConfig(configFields);
+        onOpenChange(false);
       }
-
-      toast.success("Job Created Successfully");
-
-      reset();
-      setConfig(
-        configFields.map((config) => ({
-          name: config.name,
-          key: config.key,
-          status: "mandatory" as const,
-        }))
-      );
-      onOpenChange(false);
     } catch (error) {
       toast.error(
-        error instanceof Error ? error.message : "Failed to Create Job"
+        error instanceof Error
+          ? error.message
+          : isEditMode
+          ? "Failed to Update Job"
+          : "Failed to Create Job"
       );
     } finally {
-      setLoading(false);
+      setTimeout(() => {
+        setLoading(false);
+      }, 1000);
     }
   };
 
@@ -128,7 +177,7 @@ export default function CreateJobDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-xl font-semibold">
-            Job Opening
+            {isEditMode ? "Edit Job Opening" : "Create Job Opening"}
           </DialogTitle>
           <button
             onClick={() => onOpenChange(false)}
@@ -147,7 +196,9 @@ export default function CreateJobDialog({
             <Input
               id="title"
               placeholder="Ex: Front End Engineer"
-              {...register("title")}
+              {...register("title", {
+                onChange: (e) => handleFieldChange("title", e.target.value),
+              })}
             />
             {errors.title && (
               <p className="text-xs text-destructive">{errors.title.message}</p>
@@ -158,7 +209,10 @@ export default function CreateJobDialog({
             <Label htmlFor="type">
               Job Type<span className="text-destructive">*</span>
             </Label>
-            <Select onValueChange={(value) => setValue("type", value)}>
+            <Select
+              onValueChange={(value) => handleFieldChange("type", value)}
+              value={existingJob?.type}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select job type" />
               </SelectTrigger>
@@ -182,7 +236,10 @@ export default function CreateJobDialog({
               id="description"
               placeholder="Ex..."
               className="min-h-[100px]"
-              {...register("description")}
+              {...register("description", {
+                onChange: (e) =>
+                  handleFieldChange("description", e.target.value),
+              })}
             />
             {errors.description && (
               <p className="text-xs text-destructive">
@@ -198,7 +255,14 @@ export default function CreateJobDialog({
                 <Label htmlFor="startedAt" className="text-sm">
                   Started At<span className="text-destructive">*</span>
                 </Label>
-                <Input id="startedAt" type="date" {...register("startedAt")} />
+                <Input
+                  id="startedAt"
+                  type="date"
+                  {...register("startedAt", {
+                    onChange: (e) =>
+                      handleFieldChange("startedAt", e.target.value),
+                  })}
+                />
                 {errors.startedAt && (
                   <p className="text-xs text-destructive mt-1">
                     {errors.startedAt.message}
@@ -209,7 +273,14 @@ export default function CreateJobDialog({
                 <Label htmlFor="endedAt" className="text-sm">
                   Ended At<span className="text-destructive">*</span>
                 </Label>
-                <Input id="endedAt" type="date" {...register("endedAt")} />
+                <Input
+                  id="endedAt"
+                  type="date"
+                  {...register("endedAt", {
+                    onChange: (e) =>
+                      handleFieldChange("endedAt", e.target.value),
+                  })}
+                />
                 {errors.endedAt && (
                   <p className="text-xs text-destructive mt-1">
                     {errors.endedAt.message}
@@ -236,7 +307,10 @@ export default function CreateJobDialog({
                     type="number"
                     placeholder="7,000,000"
                     className="pl-8"
-                    {...register("minSalary")}
+                    {...register("minSalary", {
+                      onChange: (e) =>
+                        handleFieldChange("minSalary", e.target.value),
+                    })}
                   />
                 </div>
               </div>
@@ -254,7 +328,10 @@ export default function CreateJobDialog({
                     type="number"
                     className="pl-8"
                     placeholder="8,000,000"
-                    {...register("maxSalary")}
+                    {...register("maxSalary", {
+                      onChange: (e) =>
+                        handleFieldChange("maxSalary", e.target.value),
+                    })}
                   />
                 </div>
               </div>
@@ -271,7 +348,9 @@ export default function CreateJobDialog({
                   key={config.key}
                   className="flex items-center justify-between py-2"
                 >
-                  <span className="text-sm">{config.name}</span>
+                  <span className="text-sm capitalize">
+                    {config.key.split("-").join(" ")}
+                  </span>
                   <div className="flex gap-2">
                     <button
                       type="button"
@@ -316,7 +395,13 @@ export default function CreateJobDialog({
 
           <div className="flex justify-end pt-4">
             <Button type="submit" size="lg" className="px-8" disabled={loading}>
-              {loading ? "Publishing..." : "Publish Job"}
+              {loading
+                ? isEditMode
+                  ? "Updating..."
+                  : "Publishing..."
+                : isEditMode
+                ? "Update Job"
+                : "Publish Job"}
             </Button>
           </div>
         </form>

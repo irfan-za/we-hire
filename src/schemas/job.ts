@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const createJobSchema = z
+export const jobSchema = z
   .object({
     title: z
       .string()
@@ -25,4 +25,4 @@ export const createJobSchema = z
     path: ["endedAt"],
   });
 
-export type CreateJobFormData = z.infer<typeof createJobSchema>;
+export type JobFormData = z.infer<typeof jobSchema>;

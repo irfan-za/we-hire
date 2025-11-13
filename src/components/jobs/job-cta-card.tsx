@@ -8,7 +8,7 @@ interface JobCtaCardProps {
 export default function JobCtaCard({ onCreateClick }: JobCtaCardProps) {
   return (
     <aside className="hidden md:block md:col-span-4 lg:col-span-3">
-      <div className="flex flex-col rounded-lg relative h-36 p-2">
+      <div className="flex flex-col rounded-lg h-36 p-2 sticky top-16">
         <div className="absolute inset-0 bg-black/50 rounded-lg -z-10"></div>
         <Image
           src={"/images/bg-menu.jpg"}

@@ -1,5 +1,6 @@
-import { createJobSchema } from "@/schemas/job";
+import { jobSchema } from "@/schemas/job";
 import { createClient } from "@/lib/utils/supabase/server";
+import { formatIDR } from "@/lib/utils";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const validatedData = createJobSchema.parse(body);
+    const validatedData = jobSchema.parse(body);
     const requestData = {
       title: validatedData.title,
       slug: body.slug,
@@ -87,7 +88,9 @@ export async function POST(request: NextRequest) {
             min: validatedData.minSalary,
             max: validatedData.maxSalary,
             currency: "IDR",
-            display_text: `Rp ${validatedData.minSalary} - Rp ${validatedData.maxSalary}`,
+            display_text: `${formatIDR(validatedData.minSalary)} - ${formatIDR(
+              validatedData.maxSalary
+            )}`,
           },
         }),
       config: validatedData.config,

@@ -163,3 +163,58 @@ export function useCreateJob() {
     },
   });
 }
+
+export function useUpdateJob() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      jobId,
+      jobData,
+    }: {
+      jobId: string;
+      jobData: unknown;
+    }) => {
+      const response = await fetch(`/api/jobs/${jobId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(jobData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to update job");
+      }
+
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["jobs"] });
+      toast.success("Job updated successfully");
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Failed to update job");
+    },
+  });
+}
+
+export function useGetJob(jobId: string) {
+  return useQuery({
+    queryKey: ["jobs", "detail", jobId],
+    queryFn: async () => {
+      const response = await fetch(`/api/jobs/${jobId}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to fetch job");
+      }
+
+      const result = await response.json();
+      return result.data as Job;
+    },
+    enabled: !!jobId,
+    staleTime: 30 * 1000,
+  });
+}
