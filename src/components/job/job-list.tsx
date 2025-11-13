@@ -17,10 +17,10 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import JobDialog from "@/components/jobs/job-dialog";
-import JobNotFound from "@/components/jobs/job-not-found";
-import JobCtaCard from "@/components/jobs/job-cta-card";
-import JobCard from "@/components/jobs/job-card";
+import JobDialog from "@/components/job/job-dialog";
+import JobNotFound from "@/components/job/job-not-found";
+import JobCtaCard from "@/components/job/job-cta-card";
+import JobCard from "@/components/job/job-card";
 import { useJobs, Job } from "@/hooks/use-jobs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { LoaderCircle, Plus, Search } from "lucide-react";
@@ -104,7 +104,10 @@ export default function JobList() {
     updateParams({ limit: value, page: "1" });
   };
 
-  const handleManageClick = (job: Job) => {
+  const handleManageClick = (jobId: string) => {
+    router.push(`/admin/${jobId}/candidates`);
+  };
+  const handleEditClick = (job: Job) => {
     setEditingJob(job);
     setIsDialogOpen(true);
   };
@@ -219,6 +222,7 @@ export default function JobList() {
                     key={job.id}
                     job={job}
                     onManageClick={handleManageClick}
+                    onEditClick={handleEditClick}
                   />
                 ))}
               </div>

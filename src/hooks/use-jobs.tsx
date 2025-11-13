@@ -170,22 +170,3 @@ export function useUpdateJob() {
     },
   });
 }
-
-export function useGetJob(jobId: string) {
-  return useQuery({
-    queryKey: ["jobs", "detail", jobId],
-    queryFn: async () => {
-      const response = await fetch(`/api/jobs/${jobId}`);
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Failed to fetch job");
-      }
-
-      const result = await response.json();
-      return result.data as Job;
-    },
-    enabled: !!jobId,
-    staleTime: 30 * 1000,
-  });
-}

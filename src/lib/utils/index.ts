@@ -24,3 +24,10 @@ export function formatIDR(amount: number | string): string {
   }).format(value);
   return `Rp ${formatted}`;
 }
+export const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+};

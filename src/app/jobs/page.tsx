@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import JobDialog from "@/components/jobs/job-dialog";
+import JobDialog from "@/components/job/job-dialog";
 import { Search } from "lucide-react";
 import Image from "next/image";
 import React, { useState } from "react";

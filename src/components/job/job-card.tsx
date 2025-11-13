@@ -1,14 +1,26 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Job } from "@/hooks/use-jobs";
 import { format } from "date-fns";
+import { ChevronDown } from "lucide-react";
 
 interface JobCardProps {
   job: Job;
-  onManageClick: (job: Job) => void;
+  onManageClick: (jobId: string) => void;
+  onEditClick: (job: Job) => void;
 }
 
-export default function JobCard({ job, onManageClick }: JobCardProps) {
+export default function JobCard({
+  job,
+  onManageClick,
+  onEditClick,
+}: JobCardProps) {
   const getStatusVariant = (status: string) => {
     switch (status) {
       case "active":
@@ -51,9 +63,27 @@ export default function JobCard({ job, onManageClick }: JobCardProps) {
         <div className="text-sm font-semibold text-primary">
           {formatSalaryRange()}
         </div>
-        <Button size="sm" onClick={() => onManageClick(job)}>
-          Manage Job
-        </Button>
+        <div className="flex items-center">
+          <Button
+            size="sm"
+            className="rounded-r-none"
+            onClick={() => onManageClick(job.id)}
+          >
+            Manage Job
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button size="sm" className="rounded-l-none" variant="outline">
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onEditClick(job)}>
+                Edit Job
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </div>
   );

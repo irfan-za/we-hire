@@ -1,4 +1,4 @@
-import JobsList from "@/components/jobs/job-list";
+import JobsList from "@/components/job/job-list";
 import React from "react";
 
 export default async function AdminPage() {
