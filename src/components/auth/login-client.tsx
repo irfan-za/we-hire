@@ -39,10 +39,10 @@ export default function LoginClient() {
         password: data.password,
       }),
     });
-    const { error } = await res.json();
+    const { data: responseData, error } = await res.json();
     if (!error) {
       await clearLocalStorageCache();
-      router.replace("/jobs");
+      router.replace(`${responseData.role === "admin" ? "/admin" : "/jobs"}`);
     } else {
       if (error.code === "invalid_credentials") {
         toast.error("Email or Password Incorrect", {
@@ -64,7 +64,7 @@ export default function LoginClient() {
           <div className="p-4 sm:p-7">
             <div className="text-center">
               <h1 className="block text-2xl font-bold text-foreground">
-                Sign In
+                Login
               </h1>
               <p className="mt-2 text-sm text-accent-foreground">
                 Don&apos;t have an account?{" "}
@@ -146,7 +146,7 @@ export default function LoginClient() {
                   </div>
 
                   <Button disabled={loading} className="font-medium">
-                    {loading ? "Signing in..." : "Sign In"}
+                    {loading ? "Logging in..." : "Login"}
                   </Button>
                 </div>
               </form>

@@ -2,6 +2,74 @@ import { createJobSchema } from "@/schemas/job";
 import { createClient } from "@/lib/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    const { searchParams } = new URL(request.url);
+
+    const searchQuery = searchParams.get("q");
+    const status = searchParams.get("status");
+    const type = searchParams.get("type");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    const offset = (page - 1) * limit;
+
+    let query = supabase
+      .from("jobs")
+      .select(
+        "id,title,slug,description,type,started_at,ended_at,status,salary_range,config",
+        { count: "exact" }
+      );
+
+    if (searchQuery && searchQuery.trim()) {
+      query = query.or(
+        `title.ilike.%${searchQuery.trim()}%,description.ilike.%${searchQuery.trim()}%`
+      );
+    }
+
+    if (status) {
+      const statuses = status.split(",");
+      query = query.in("status", statuses);
+    }
+
+    if (type) {
+      const types = type.split(",");
+      query = query.in("type", types);
+    }
+
+    const { data, error, count } = await query
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw error;
+    }
+
+    const totalPages = Math.ceil((count || 0) / limit);
+
+    return NextResponse.json(
+      {
+        data: data || [],
+        pagination: {
+          page,
+          limit,
+          total: count || 0,
+          totalPages,
+        },
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : "Failed to fetch jobs",
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
@@ -42,7 +110,6 @@ export async function POST(request: NextRequest) {
     if (error instanceof Error) {
       return NextResponse.json(
         {
-          success: false,
           error: error.message,
         },
         { status: 400 }
@@ -51,7 +118,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       {
-        success: false,
         error: "Failed to create job",
       },
       { status: 500 }

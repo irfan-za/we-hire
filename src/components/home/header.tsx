@@ -120,7 +120,7 @@ export default function Header() {
           ) : (
             <>
               <Button className="font-medium" asChild>
-                <Link href="/auth/login">Sign In</Link>
+                <Link href="/auth/login">Login</Link>
               </Button>
             </>
           )}
@@ -166,7 +166,7 @@ export default function Header() {
             </DropdownMenu>
           ) : (
             <Button asChild>
-              <Link href="/auth/login">Sign In</Link>
+              <Link href="/auth/login">Login</Link>
             </Button>
           )}
           <button

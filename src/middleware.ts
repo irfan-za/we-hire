@@ -9,10 +9,19 @@ export async function middleware(req: NextRequest) {
   const {
     data: { user },
   } = await supabaseMiddleware.auth.getUser();
-  if (!user && pathname.startsWith("/jobs")) {
+  const { data: currentUser } = await supabaseMiddleware
+    .from("users")
+    .select("role")
+    .single();
+  if ((!user || !currentUser) && pathname.startsWith("/admin")) {
     const url = new URL(`/auth/login`, req.url);
     return NextResponse.redirect(url.href);
   } else if (user && pathname.startsWith("/auth")) {
+    const url = new URL(`/jobs`, req.url);
+    return NextResponse.redirect(url.href);
+  }
+
+  if (currentUser?.role !== "admin" && pathname.startsWith("/admin")) {
     const url = new URL(`/jobs`, req.url);
     return NextResponse.redirect(url.href);
   }
@@ -20,5 +29,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/auth/:path*", "/jobs/:path*"],
+  matcher: ["/auth/:path*", "/jobs/:path*", "/admin/:path*"],
 };

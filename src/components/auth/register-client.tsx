@@ -69,7 +69,7 @@ export default function RegisterClient() {
           <div className="p-4 sm:p-7">
             <div className="text-center">
               <h1 className="block text-2xl font-bold text-foreground">
-                Sign Up
+                Register
               </h1>
               <p className="mt-2 text-sm text-accent-foreground">
                 Already have an account?{" "}
@@ -77,7 +77,7 @@ export default function RegisterClient() {
                   className="font-medium text-primary decoration-2 hover:underline"
                   href="/auth/login"
                 >
-                  Sign in here.
+                  Login here.
                 </Link>
               </p>
             </div>
@@ -214,7 +214,7 @@ export default function RegisterClient() {
                   </div>
 
                   <Button disabled={loading} className="font-medium">
-                    {loading ? "Creating account..." : "Sign Up"}
+                    {loading ? "Creating account..." : "Register"}
                   </Button>
                 </div>
               </form>
