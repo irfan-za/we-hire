@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export type Candidate = {
   id: string;
@@ -31,7 +31,10 @@ interface CandidatesResponse {
   };
 }
 
-export function useCandidates(jobId: string, params: CandidatesQueryParams = {}) {
+export function useCandidates(
+  jobId: string,
+  params: CandidatesQueryParams = {}
+) {
   return useQuery<CandidatesResponse>({
     queryKey: ["candidates", jobId, params],
     queryFn: async () => {
@@ -44,7 +47,9 @@ export function useCandidates(jobId: string, params: CandidatesQueryParams = {})
       if (params.page) searchParams.set("page", params.page.toString());
       if (params.limit) searchParams.set("limit", params.limit.toString());
 
-      const response = await fetch(`/api/candidates?${searchParams.toString()}`);
+      const response = await fetch(
+        `/api/candidates?${searchParams.toString()}`
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -58,3 +63,11 @@ export function useCandidates(jobId: string, params: CandidatesQueryParams = {})
     refetchOnWindowFocus: true,
   });
 }
+export const useDeleteCandidate = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) =>
+      await fetch(`/api/candidates/${id}`, { method: "DELETE" }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["candidates"] }),
+  });
+};

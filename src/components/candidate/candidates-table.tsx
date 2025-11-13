@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useCandidates } from "@/hooks/use-candidates";
+import { useCandidates, useDeleteCandidate } from "@/hooks/use-candidates";
 import { LoaderCircle, ArrowUpDown, ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
@@ -30,6 +30,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { BulkActions } from "./bulk-actions";
 
 interface CandidatesTableProps {
   jobId: string;
@@ -43,8 +44,8 @@ export default function CandidatesTable({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
+  const [isDeletingBulk, setIsDeletingBulk] = useState(false);
 
   const genderParam = searchParams.get("gender") || "";
   const pageParam = parseInt(searchParams.get("page") || "1");
@@ -65,6 +66,7 @@ export default function CandidatesTable({
     jobId,
     candidatesQueryParams
   );
+  const deleteCandidateMutation = useDeleteCandidate();
 
   const candidates = data?.data || [];
   const pagination = data?.pagination || {
@@ -72,6 +74,17 @@ export default function CandidatesTable({
     limit: 10,
     total: 0,
     totalPages: 0,
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedCandidates.length === 0) return;
+
+    setIsDeletingBulk(true);
+    for (const id of Array.from(selectedCandidates)) {
+      await deleteCandidateMutation.mutateAsync(id);
+    }
+    setSelectedCandidates([]);
+    setIsDeletingBulk(false);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -167,16 +180,24 @@ export default function CandidatesTable({
           </div>
           <h1 className="text-2xl font-semibold">{jobTitle}</h1>
         </div>
-        <Select value={genderParam} onValueChange={handleGenderChange}>
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by gender" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Genders</SelectItem>
-            <SelectItem value="male">Male</SelectItem>
-            <SelectItem value="female">Female</SelectItem>
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <BulkActions
+            selectedCount={selectedCandidates.length}
+            onDelete={handleBulkDelete}
+            onClear={() => setSelectedCandidates([])}
+            isDeleting={isDeletingBulk || deleteCandidateMutation.isPending}
+          />
+          <Select value={genderParam} onValueChange={handleGenderChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter by gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Genders</SelectItem>
+              <SelectItem value="male">Male</SelectItem>
+              <SelectItem value="female">Female</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="border rounded-lg">
