@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
     const searchQuery = searchParams.get("q");
     const status = searchParams.get("status");
     const type = searchParams.get("type");
+    const location = searchParams.get("location");
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("jobs")
       .select(
-        "id,title,slug,description,type,started_at,ended_at,status,location,company,salary_range,config",
+        "id,title,slug,description,type,started_at,ended_at,status,work_arrangement,location,company,salary_range,config",
         { count: "exact" }
       );
 
@@ -37,6 +38,10 @@ export async function GET(request: NextRequest) {
     if (type) {
       const types = type.split(",");
       query = query.in("type", types);
+    }
+
+    if (location) {
+      query = query.or(`location.ilike.%${location}%`);
     }
 
     const { data, error, count } = await query

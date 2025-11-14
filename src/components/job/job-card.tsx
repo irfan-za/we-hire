@@ -10,6 +10,7 @@ import { Job } from "@/hooks/use-jobs";
 import { format, formatDistanceToNow } from "date-fns";
 import { ChevronDown, MapPin, Clock, CircleDollarSign } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getStatusVariant, getWorkArrangementVariant } from "@/lib/utils";
 
 interface JobCardProps {
   job: Job;
@@ -22,19 +23,6 @@ export default function JobCard({
   onManageClick,
   onEditClick,
 }: JobCardProps) {
-  const getStatusVariant = (status: string) => {
-    switch (status) {
-      case "active":
-        return "default";
-      case "inactive":
-        return "destructive";
-      case "draft":
-        return "secondary";
-      default:
-        return "outline";
-    }
-  };
-
   const formatSalaryRange = () => {
     if (!job.salary_range) return null;
     return job.salary_range.display_text;
@@ -87,13 +75,8 @@ export default function JobCard({
         <div className="flex justify-between items-end pt-2">
           <div className="flex items-center gap-2">
             <Badge variant="outline">{job.type}</Badge>
-            <Badge variant="default">
-              {(() => {
-                const loc = (job.location || "").toLowerCase();
-                if (loc.includes("remote")) return "Remote";
-                if (loc.includes("hybrid")) return "Hybrid";
-                return "Onsite";
-              })()}
+            <Badge variant={getWorkArrangementVariant(job.work_arrangement)}>
+              {job.work_arrangement}
             </Badge>
           </div>
           <span className="text-xs text-muted-foreground ">

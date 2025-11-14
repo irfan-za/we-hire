@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export type JobStatus = "active" | "inactive" | "draft";
+export type WorkArrangement = "remote" | "onsite" | "hybrid";
 
 export type Job = {
   id: string;
@@ -12,6 +13,7 @@ export type Job = {
   started_at: string;
   ended_at: string;
   status: JobStatus;
+  work_arrangement: WorkArrangement;
   location: string;
   company: string;
   salary_range: {

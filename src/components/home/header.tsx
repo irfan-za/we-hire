@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { MenuIcon, X } from "lucide-react";
+import { ArrowLeft, MenuIcon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-
 import { toast } from "sonner";
 import { Button } from "../ui/button";
 import { UserData } from "@/types";
@@ -17,14 +16,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserData | null>(null);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
+  const externalId = searchParams.get("external_id");
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -64,7 +65,16 @@ export default function Header() {
         <div className="flex items-center gap-2">
           {pathname.startsWith("/jobs") ? (
             <Link href="/jobs" className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold">Job List</h2>
+              <h2 className="text-lg font-semibold">
+                {externalId ? (
+                  <span className="text-sm text-muted-foreground flex items-center hover:bg-muted border py-0.5 px-2 rounded-sm lg:hidden">
+                    <ArrowLeft className="mr-1 w-4 h-4" /> back
+                  </span>
+                ) : (
+                  <span className="lg:hidden inline">Job List</span>
+                )}
+                <span className="hidden lg:inline">Job List</span>
+              </h2>
             </Link>
           ) : (
             <Link href="/" className="flex items-center space-x-2">

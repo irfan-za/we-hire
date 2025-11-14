@@ -1,6 +1,7 @@
 "use client";
 
 import JobCard from "@/components/job/job-card";
+import JobDetail from "@/components/job/job-detail";
 import {
   Select,
   SelectTrigger,
@@ -9,7 +10,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import Image from "next/image";
-import { useJobs } from "@/hooks/use-jobs";
+import { useJobs, Job } from "@/hooks/use-jobs";
 import { useMemo, useCallback } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
@@ -20,6 +21,7 @@ export default function JobsPage() {
 
   const selectedType = searchParams.get("type") || "all";
   const selectedLocation = searchParams.get("location") || "all";
+  const externalId = searchParams.get("external_id");
 
   const { data, isLoading, error } = useJobs({
     type: selectedType === "all" ? undefined : selectedType,
@@ -29,6 +31,15 @@ export default function JobsPage() {
 
   const jobs = useMemo(() => data?.data || [], [data]);
   const pagination = useMemo(() => data?.pagination || { total: 0 }, [data]);
+
+  const selectedJob = useMemo(() => {
+    if (!jobs || jobs.length === 0) return null;
+    if (!externalId) {
+      return jobs[0] || null;
+    }
+
+    return jobs.find((job) => job.slug === externalId) || null;
+  }, [externalId, jobs]);
 
   const updateParams = useCallback(
     (updates: Record<string, string | null>) => {
@@ -42,9 +53,19 @@ export default function JobsPage() {
     [searchParams, router, pathname]
   );
 
-  const setType = (v: string) => updateParams({ type: v === "all" ? null : v });
+  const setType = (v: string) =>
+    updateParams({ type: v === "all" ? null : v, external_id: null });
   const setLocation = (v: string) =>
-    updateParams({ location: v === "all" ? null : v });
+    updateParams({ location: v === "all" ? null : v, external_id: null });
+
+  const handleJobClick = useCallback(
+    (job: Job) => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("external_id", job.slug);
+      router.push(`${pathname}?${params.toString()}`);
+    },
+    [searchParams, router, pathname]
+  );
 
   if (isLoading) {
     return (
@@ -86,9 +107,13 @@ export default function JobsPage() {
     );
   }
   return (
-    <div className="min-h-[calc(100vh-4rem)] grid grid-cols-10 p-3 gap-3">
-      <div className="col-span-3 flex flex-col items-center">
-        <div className="w-full max-w-2xl px-4 mb-4 flex gap-3">
+    <div className="min-h-[calc(100vh-4rem)] grid lg:grid-cols-10 p-3 gap-3">
+      <div
+        className={`${
+          externalId ? "hidden lg:block" : ""
+        } lg:col-span-3 flex flex-col items-center`}
+      >
+        <div className="w-full px-4 mb-4 flex gap-3">
           <Select value={selectedType} onValueChange={(v) => setType(v)}>
             <SelectTrigger className="w-48 h-12">
               <SelectValue placeholder="Job Type" />
@@ -113,7 +138,7 @@ export default function JobsPage() {
               <SelectItem value="all">All Locations</SelectItem>
               <SelectItem value="jakarta">Jakarta</SelectItem>
               <SelectItem value="bandung">Bandung</SelectItem>
-              <SelectItem value="remote">Remote</SelectItem>
+              <SelectItem value="yogyakarta">Yogyakarta</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -124,12 +149,30 @@ export default function JobsPage() {
           </div>
           <div className="space-y-4 h-[calc(100vh-11rem)] overflow-y-auto p-1">
             {jobs.map((job) => (
-              <JobCard key={job.id} job={job} />
+              <div
+                key={job.id}
+                onClick={() => handleJobClick(job)}
+                className={`cursor-pointer transition-all ${
+                  selectedJob?.id === job.id
+                    ? "ring-2 ring-primary rounded-lg"
+                    : ""
+                }`}
+              >
+                <JobCard job={job} />
+              </div>
             ))}
           </div>
         </div>
       </div>
-      <div className="col-span-7">job description</div>
+      <div className={`${!externalId ? "hidden lg:block" : ""} lg:col-span-7`}>
+        {selectedJob ? (
+          <JobDetail job={selectedJob} />
+        ) : (
+          <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>Select a job to view details</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
