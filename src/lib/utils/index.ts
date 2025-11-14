@@ -5,14 +5,22 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function generateSlug(title: string): string {
-  return title
+export function generateSlug(title: string, suffixLength = 10): string {
+  const base = title
     .toLowerCase()
     .trim()
     .replace(/[^\w\s-]/g, "")
     .replace(/\s+/g, "-")
     .replace(/--+/g, "-")
     .replace(/^-+|-+$/g, "");
+
+  const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
+  let suffix = "";
+  for (let i = 0; i < suffixLength; i++) {
+    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+
+  return base ? `${base}-${suffix}` : suffix;
 }
 
 export function formatIDR(amount: number | string): string {

@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("jobs")
       .select(
-        "id,title,slug,description,type,started_at,ended_at,status,salary_range,config",
+        "id,title,slug,description,type,started_at,ended_at,status,location,company,salary_range,config",
         { count: "exact" }
       );
 

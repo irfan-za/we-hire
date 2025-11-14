@@ -34,7 +34,12 @@ import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useUpdateJob, Job, useDeleteJob } from "@/hooks/use-jobs";
+import {
+  useUpdateJob,
+  Job,
+  useDeleteJob,
+  useCreateJob,
+} from "@/hooks/use-jobs";
 
 interface JobDialogProps {
   open: boolean;
@@ -67,6 +72,7 @@ export default function JobDialog({
   const [config, setConfig] = useState<Config[]>(configFields);
 
   const isEditMode = !!existingJob;
+  const { mutate: createJob } = useCreateJob();
   const { mutate: updateJob } = useUpdateJob();
   const { mutate: deleteJob, isPending: isDeleting } = useDeleteJob();
   const mandatoryIndexes = [0, 1, 4];
@@ -147,7 +153,6 @@ export default function JobDialog({
       const payload = { ...data, slug };
 
       if (isEditMode && existingJob) {
-        // Update existing job
         updateJob(
           { jobId: existingJob.id, jobData: payload },
           {
@@ -159,26 +164,13 @@ export default function JobDialog({
           }
         );
       } else {
-        // Create new job
-        const res = await fetch("/api/jobs", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        createJob(payload, {
+          onSuccess: () => {
+            reset();
+            setConfig(configFields);
+            onOpenChange(false);
           },
-          body: JSON.stringify(payload),
         });
-
-        const result = await res.json();
-
-        if (!res.ok) {
-          throw new Error(result.error || "Failed to create job");
-        }
-
-        toast.success("Job Created Successfully");
-
-        reset();
-        setConfig(configFields);
-        onOpenChange(false);
       }
     } catch (error) {
       toast.error(

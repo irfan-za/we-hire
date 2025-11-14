@@ -12,6 +12,8 @@ export type Job = {
   started_at: string;
   ended_at: string;
   status: JobStatus;
+  location: string;
+  company: string;
   salary_range: {
     min: string;
     max: string;
@@ -27,6 +29,7 @@ export type Job = {
 interface JobsQueryParams {
   search?: string;
   type?: string;
+  location?: string;
   status?: string;
   page?: number;
   limit?: number;
@@ -50,6 +53,7 @@ export function useJobs(params: JobsQueryParams = {}) {
 
       if (params.search) searchParams.set("q", params.search);
       if (params.type) searchParams.set("type", params.type);
+      if (params.location) searchParams.set("location", params.location);
       if (params.status) searchParams.set("status", params.status);
       if (params.page) searchParams.set("page", params.page.toString());
       if (params.limit) searchParams.set("limit", params.limit.toString());

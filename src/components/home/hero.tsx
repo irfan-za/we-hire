@@ -13,10 +13,10 @@ export default function Hero() {
             </h1>
             <div className="space-y-2">
               <p className="text-2xl md:text-4xl font-bold text-teal-600">
-                in just a few months
+                in just a few clicks
               </p>
               <p className="text-2xl md:text-4xl font-bold text-teal-600">
-                or get a 100% refund
+                explore 19M+ jobs here
               </p>
             </div>
           </div>
@@ -39,6 +39,12 @@ export default function Hero() {
               className="px-8 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition-colors shadow-lg hover:shadow-xl"
             >
               Get Started
+            </Link>
+            <Link
+              href="/jobs"
+              className="px-8 py-3 bg-white border-2 border-primary hover:bg-primary/20 text-primary font-semibold rounded-lg transition-colors shadow-lg hover:shadow-xl"
+            >
+              Browse Jobs
             </Link>
           </div>
         </div>
