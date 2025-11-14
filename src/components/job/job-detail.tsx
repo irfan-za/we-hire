@@ -1,9 +1,9 @@
-import { Job } from "@/hooks/use-jobs";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { MapPin, Clock, Briefcase } from "lucide-react";
 import { getExperienceLevel } from "@/lib/utils";
 import Link from "next/link";
+import { Job } from "@/types";
 
 interface JobDetailProps {
   job: Job;
@@ -11,7 +11,7 @@ interface JobDetailProps {
 
 export default function JobDetail({ job }: JobDetailProps) {
   return (
-    <div className="flex flex-col w-full rounded-lg border border-border h-[calc(100vh-6rem)] overflow-y-auto">
+    <div className="flex flex-col justify-between w-full rounded-lg border border-border h-[calc(100vh-6rem)] overflow-y-auto">
       <div className="sticky top-0 z-10 bg-background rounded-t-lg flex flex-col gap-4 p-5 border-b border-border">
         <div className="flex justify-between items-start">
           <div className="flex gap-2 flex-col flex-1">
@@ -43,7 +43,7 @@ export default function JobDetail({ job }: JobDetailProps) {
         </div>
       </div>
 
-      <div className="px-5">
+      <div className="px-5 flex-1">
         <div className="flex flex-col gap-1 py-2">
           <div className="flex gap-2 items-center">
             <Clock className="text-muted-foreground w-3 h-3 md:w-4 md:h-4" />

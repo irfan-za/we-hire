@@ -21,11 +21,12 @@ import JobDialog from "@/components/job/job-dialog";
 import JobNotFound from "@/components/job/job-not-found";
 import JobCtaCard from "@/components/job/job-cta-card";
 import JobCard from "@/components/job/job-card";
-import { useJobs, Job } from "@/hooks/use-jobs";
+import { useJobs } from "@/hooks/use-jobs";
 import { useDebounce } from "@/hooks/use-debounce";
 import { LoaderCircle, Plus, Search } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { Job } from "@/types";
 
 export default function JobList() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);

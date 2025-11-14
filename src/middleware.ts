@@ -13,7 +13,10 @@ export async function middleware(req: NextRequest) {
     .from("users")
     .select("role")
     .single();
-  if ((!user || !currentUser) && pathname.startsWith("/admin")) {
+  if (
+    (!user || !currentUser) &&
+    (pathname.startsWith("/admin") || pathname.startsWith("/apply-job"))
+  ) {
     const url = new URL(`/auth/login`, req.url);
     return NextResponse.redirect(url.href);
   } else if (user && pathname.startsWith("/auth")) {
@@ -29,5 +32,10 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/auth/:path*", "/jobs/:path*", "/admin/:path*"],
+  matcher: [
+    "/auth/:path*",
+    "/jobs/:path*",
+    "/apply-job/:path*",
+    "/admin/:path*",
+  ],
 };

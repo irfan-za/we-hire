@@ -59,7 +59,7 @@ export function useCandidates(
       return response.json();
     },
     enabled: !!jobId,
-    staleTime: 30 * 1000,
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
   });
 }

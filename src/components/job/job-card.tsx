@@ -6,11 +6,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Job } from "@/hooks/use-jobs";
-import { format, formatDistanceToNow } from "date-fns";
-import { ChevronDown, MapPin, Clock, CircleDollarSign } from "lucide-react";
+import { format, formatDistanceToNowStrict } from "date-fns";
+import { ChevronDown, MapPin, CircleDollarSign } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getStatusVariant, getWorkArrangementVariant } from "@/lib/utils";
+import { Job } from "@/types";
 
 interface JobCardProps {
   job: Job;
@@ -81,7 +81,7 @@ export default function JobCard({
           </div>
           <span className="text-xs text-muted-foreground ">
             {job.started_at
-              ? formatDistanceToNow(new Date(job.started_at), {
+              ? formatDistanceToNowStrict(new Date(job.started_at), {
                   addSuffix: true,
                 })
               : "-"}

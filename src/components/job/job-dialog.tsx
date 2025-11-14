@@ -34,12 +34,8 @@ import { X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import {
-  useUpdateJob,
-  Job,
-  useDeleteJob,
-  useCreateJob,
-} from "@/hooks/use-jobs";
+import { useUpdateJob, useDeleteJob, useCreateJob } from "@/hooks/use-jobs";
+import { Config, Job } from "@/types";
 
 interface JobDialogProps {
   open: boolean;
@@ -47,14 +43,9 @@ interface JobDialogProps {
   job?: Job;
 }
 
-type Config = {
-  key: string;
-  status: "mandatory" | "optional" | "off";
-};
-
 const configFields: Config[] = [
   { key: "full-name", status: "mandatory" },
-  { key: "photo-profile", status: "mandatory" },
+  { key: "profile-picture", status: "mandatory" },
   { key: "gender", status: "mandatory" },
   { key: "domicile", status: "mandatory" },
   { key: "email", status: "mandatory" },

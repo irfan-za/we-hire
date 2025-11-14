@@ -1,32 +1,6 @@
+import { Job } from "@/types";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-
-export type JobStatus = "active" | "inactive" | "draft";
-export type WorkArrangement = "remote" | "onsite" | "hybrid";
-
-export type Job = {
-  id: string;
-  title: string;
-  slug: string;
-  type: string;
-  description: string;
-  started_at: string;
-  ended_at: string;
-  status: JobStatus;
-  work_arrangement: WorkArrangement;
-  location: string;
-  company: string;
-  salary_range: {
-    min: string;
-    max: string;
-    currency: string;
-    display_text: string;
-  };
-  config?: Array<{
-    field: string;
-    status: "mandatory" | "optional" | "off";
-  }>;
-};
 
 interface JobsQueryParams {
   search?: string;
@@ -74,7 +48,7 @@ export function useJobs(params: JobsQueryParams = {}) {
 
       return response.json();
     },
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 5 * 60 * 1000, // 5 minutes
     refetchOnWindowFocus: true,
     retry: (failureCount: number, error: Error) => {
       if (error.message.includes("Failed to fetch jobs")) {

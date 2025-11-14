@@ -4,6 +4,7 @@ import "./globals.css";
 import Header from "@/components/home/header";
 import ReactQueryClientProvider from "@/components/provider/query-client-provider";
 import { Toaster } from "@/components/ui/sonner";
+import { Suspense } from "react";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,7 +32,9 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ReactQueryClientProvider>
-          <Header />
+          <Suspense>
+            <Header />
+          </Suspense>
           {children}
           <Toaster richColors position="bottom-right" />
         </ReactQueryClientProvider>
