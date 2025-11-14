@@ -4,7 +4,7 @@ export const candidateSchema = z.object({
   fullName: z
     .string()
     .min(2, { message: "Full name must be at least 2 characters" }),
-  profilePicture: z.string().optional(),
+  profilePicture: z.union([z.string(), z.instanceof(File)]).optional(),
   gender: z.enum(["male", "female"], { message: "Please select a gender" }),
   domicile: z
     .string()

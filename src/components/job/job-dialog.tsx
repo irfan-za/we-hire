@@ -77,6 +77,14 @@ export default function JobDialog({
   const { mutate: deleteJob, isPending: isDeleting } = useDeleteJob();
   const mandatoryIndexes = [0, 1, 4];
 
+  const minDate = (() => {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  })();
+
   const {
     register,
     handleSubmit,
@@ -356,6 +364,7 @@ export default function JobDialog({
                   <Input
                     id="startedAt"
                     type="date"
+                    min={minDate}
                     {...register("startedAt", {
                       onChange: (e) =>
                         handleFieldChange("startedAt", e.target.value),
@@ -374,6 +383,7 @@ export default function JobDialog({
                   <Input
                     id="endedAt"
                     type="date"
+                    min={minDate}
                     {...register("endedAt", {
                       onChange: (e) =>
                         handleFieldChange("endedAt", e.target.value),

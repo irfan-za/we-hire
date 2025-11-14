@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/select";
 import { candidateSchema, CandidateFormData } from "@/schemas/candidate";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Camera } from "lucide-react";
+import { Camera, User } from "lucide-react";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Config, Job, JobConfigStatus } from "@/types";
+import CameraCaptureDialog from "./camera-capture-dialog";
 
 interface ApplyJobFormProps {
   job: Pick<Job, "id" | "title" | "company" | "config">;
@@ -41,7 +42,19 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
   const [profilePicturePreview, setProfilePicturePreview] = useState<
     string | null
   >(null);
+  const [profilePictureFile, setProfilePictureFile] = useState<File | null>(
+    null
+  );
+  const [isCameraDialogOpen, setIsCameraDialogOpen] = useState(false);
 
+  const maxDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+  })();
   const config: Config[] = job.config || [];
 
   const getFieldStatus = (key: string): JobConfigStatus => {
@@ -74,34 +87,33 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
     setValue(field, value as any);
   };
 
-  const handleProfilePictureChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const base64String = reader.result as string;
-        setProfilePicturePreview(base64String);
-        setValue("profilePicture", base64String);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleCameraCapture = (imageFile: File, previewUrl: string) => {
+    setProfilePicturePreview(previewUrl);
+    setProfilePictureFile(imageFile);
+    setValue("profilePicture", imageFile as any);
   };
 
   const onSubmit = async (data: CandidateFormData) => {
     setLoading(true);
 
     try {
+      const formData = new FormData();
+      formData.append("jobId", job.id);
+      formData.append("fullName", data.fullName);
+      formData.append("gender", data.gender);
+      formData.append("domicile", data.domicile);
+      formData.append("email", data.email);
+      formData.append("phoneNumber", data.phoneNumber);
+      formData.append("linkedinLink", data.linkedinLink);
+      formData.append("dateOfBirth", data.dateOfBirth);
+
+      if (profilePictureFile) {
+        formData.append("profilePicture", profilePictureFile);
+      }
+
       const response = await fetch("/api/candidates", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          jobId: job.id,
-          ...data,
-        }),
+        body: formData,
       });
 
       if (!response.ok) {
@@ -126,6 +138,12 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
 
   return (
     <div className="max-w-xl mx-auto bg-background rounded-lg shadow-sm p-6">
+      <CameraCaptureDialog
+        open={isCameraDialogOpen}
+        onOpenChange={setIsCameraDialogOpen}
+        onCapture={handleCameraCapture}
+      />
+
       <div className="mb-6">
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
           <span className="text-destructive">*</span>
@@ -151,25 +169,24 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Camera className="w-8 h-8 text-muted-foreground" />
+                    <User className="w-8 h-8 text-muted-foreground" />
                   </div>
                 )}
               </div>
-              <Label
-                htmlFor="profile-picture-upload"
-                className="flex items-center gap-2 px-4 py-2 bg-accent rounded-full cursor-pointer hover:bg-accent/80 transition-colors"
+              <Button
+                type="button"
+                onClick={() => setIsCameraDialogOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-accent text-foreground rounded-full hover:bg-accent/80 transition-colors"
               >
                 <Camera className="w-4 h-4" />
                 <span className="text-sm">Take a Picture</span>
-              </Label>
-              <Input
-                id="profile-picture-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleProfilePictureChange}
-              />
+              </Button>
             </div>
+            {errors.profilePicture && (
+              <p className="text-xs text-destructive">
+                {errors.profilePicture.message}
+              </p>
+            )}
           </div>
         )}
       </div>
@@ -209,6 +226,7 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
             <Input
               id="dateOfBirth"
               type="date"
+              max={maxDate}
               {...register("dateOfBirth", {
                 onChange: (e) =>
                   handleFieldChange("dateOfBirth", e.target.value),

@@ -71,20 +71,55 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const supabase = await createClient();
-    const body = await request.json();
+    const formData = await request.formData();
 
-    const validatedData = candidateSchema.parse(body);
+    const jobId = formData.get("jobId") as string;
+    const fullName = formData.get("fullName") as string;
+    const gender = formData.get("gender") as string;
+    const domicile = formData.get("domicile") as string;
+    const email = formData.get("email") as string;
+    const phoneNumber = formData.get("phoneNumber") as string;
+    const linkedinLink = formData.get("linkedinLink") as string;
+    const dateOfBirth = formData.get("dateOfBirth") as string;
+    const profilePictureFile = formData.get("profilePicture") as File | null;
+
+    let profilePictureUrl: string | null = null;
+
+    if (profilePictureFile) {
+      const timestamp = Date.now();
+      const fileName = `${jobId}/${timestamp}_${profilePictureFile.name}`;
+      const filePath = `candidates/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("images")
+        .upload(filePath, profilePictureFile, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (uploadError) {
+        throw new Error(
+          `Failed to upload profile picture: ${uploadError.message}`
+        );
+      }
+
+      const { data: urlData } = supabase.storage
+        .from("images")
+        .getPublicUrl(filePath);
+
+      profilePictureUrl = urlData.publicUrl;
+    }
 
     const candidateData = {
-      job_id: body.jobId,
-      full_name: validatedData.fullName,
-      profile_picture: validatedData.profilePicture || null,
-      gender: validatedData.gender,
-      domicile: validatedData.domicile,
-      email: validatedData.email,
-      phone: validatedData.phoneNumber,
-      linkedin_link: validatedData.linkedinLink,
-      date_of_birth: validatedData.dateOfBirth,
+      job_id: jobId,
+      full_name: fullName,
+      profile_picture: profilePictureUrl,
+      gender: gender as "male" | "female",
+      domicile: domicile,
+      email: email,
+      phone: phoneNumber,
+      linkedin_link: linkedinLink,
+      date_of_birth: dateOfBirth,
     };
 
     const { error } = await supabase.from("candidates").insert(candidateData);
@@ -97,7 +132,7 @@ export async function POST(request: NextRequest) {
       {
         message: "Application submitted successfully",
       },
-      { status: 201 }
+      { status: 200 }
     );
   } catch (error) {
     if (error instanceof Error) {
