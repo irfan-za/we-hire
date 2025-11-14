@@ -9,9 +9,5 @@ export async function POST(req: Request): Promise<Response> {
     email,
     password,
   });
-  const { data } = await supabase.from("users").select("role").single();
-  if (!error && data) {
-    return NextResponse.json({ data, error: null }, { status: 200 });
-  }
   return NextResponse.json({ error }, { status: error?.status });
 }

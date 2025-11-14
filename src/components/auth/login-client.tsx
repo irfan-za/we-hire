@@ -1,11 +1,10 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { clearLocalStorageCache } from "@/lib/utils/cache";
+import { clearLocalStorageCache, getUserData } from "@/lib/utils/cache";
 import { loginSchema } from "@/schemas/auth";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -14,7 +13,6 @@ import { z } from "zod";
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginClient() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [passwordVisible, setPasswordVisible] = useState(false);
 
@@ -39,10 +37,11 @@ export default function LoginClient() {
         password: data.password,
       }),
     });
-    const { data: responseData, error } = await res.json();
+    const { error } = await res.json();
     if (!error) {
       await clearLocalStorageCache();
-      router.replace(`${responseData.role === "admin" ? "/admin" : "/jobs"}`);
+      await getUserData();
+      window.location.reload();
     } else {
       if (error.code === "invalid_credentials") {
         toast.error("Email or Password Incorrect", {

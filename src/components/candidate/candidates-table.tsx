@@ -403,6 +403,7 @@ export default function CandidatesTable({
     useSensor(KeyboardSensor, {})
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: candidates,
     columns,
