@@ -38,7 +38,7 @@ export default function JobFiltersClient() {
   return (
     <div className="w-full px-4 mb-4 flex gap-3">
       <Select value={selectedType} onValueChange={(v) => setType(v)}>
-        <SelectTrigger className="w-48 h-12">
+        <SelectTrigger className="md:w-48 h-12">
           <SelectValue placeholder="Job Type" />
         </SelectTrigger>
         <SelectContent>
@@ -51,7 +51,7 @@ export default function JobFiltersClient() {
       </Select>
 
       <Select value={selectedLocation} onValueChange={(v) => setLocation(v)}>
-        <SelectTrigger className="w-48 h-12">
+        <SelectTrigger className="md:w-48 h-12">
           <SelectValue placeholder="Location" />
         </SelectTrigger>
         <SelectContent>

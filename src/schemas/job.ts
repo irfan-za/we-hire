@@ -6,6 +6,13 @@ export const jobSchema = z
       .string()
       .min(3, { message: "Job title must be at least 3 characters" }),
     type: z.string({ message: "Please select a job type" }),
+    workArrangement: z.string({ message: "Please select a work arrangement" }),
+    location: z
+      .string()
+      .min(3, { message: "Location must be at least 3 characters" }),
+    company: z
+      .string()
+      .min(2, { message: "Company name must be at least 2 characters" }),
     description: z
       .string()
       .min(10, { message: "Job description must be at least 10 characters" }),

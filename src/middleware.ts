@@ -19,8 +19,9 @@ export async function middleware(req: NextRequest) {
   ) {
     const url = new URL(`/auth/login`, req.url);
     return NextResponse.redirect(url.href);
-  } else if (user && pathname.startsWith("/auth")) {
-    const url = new URL(`/jobs`, req.url);
+  } else if (currentUser && pathname.startsWith("/auth")) {
+    const path = currentUser.role === "admin" ? "/admin" : "/jobs";
+    const url = new URL(path, req.url);
     return NextResponse.redirect(url.href);
   }
 

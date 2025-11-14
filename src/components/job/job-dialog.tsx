@@ -30,12 +30,18 @@ import { Textarea } from "@/components/ui/textarea";
 import { generateSlug } from "@/lib/utils";
 import { jobSchema, JobFormData } from "@/schemas/job";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useUpdateJob, useDeleteJob, useCreateJob } from "@/hooks/use-jobs";
-import { Config, Job } from "@/types";
+import { Config, Job, JobStatus } from "@/types";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 interface JobDialogProps {
   open: boolean;
@@ -61,6 +67,9 @@ export default function JobDialog({
   const [loading, setLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [config, setConfig] = useState<Config[]>(configFields);
+  const [status, setStatus] = useState<JobStatus>(
+    existingJob ? existingJob.status : "active"
+  );
 
   const isEditMode = !!existingJob;
   const { mutate: createJob } = useCreateJob();
@@ -106,6 +115,16 @@ export default function JobDialog({
     });
   };
 
+  const handlePublish = () => {
+    setStatus("active");
+    handleSubmit(onSubmit)();
+  };
+
+  const handleSaveAsDraft = () => {
+    setStatus("draft");
+    handleSubmit(onSubmit)();
+  };
+
   useEffect(() => {
     if (isEditMode && existingJob && open) {
       const populatedConfig = existingJob.config
@@ -125,6 +144,9 @@ export default function JobDialog({
       reset({
         title: existingJob.title,
         type: existingJob.type,
+        workArrangement: existingJob.work_arrangement,
+        location: existingJob.location,
+        company: existingJob.company,
         description: existingJob.description,
         startedAt: existingJob.started_at.split("T")[0],
         endedAt: existingJob.ended_at.split("T")[0],
@@ -141,7 +163,7 @@ export default function JobDialog({
 
     try {
       const slug = generateSlug(data.title);
-      const payload = { ...data, slug };
+      const payload = { ...data, slug, status };
 
       if (isEditMode && existingJob) {
         updateJob(
@@ -195,7 +217,7 @@ export default function JobDialog({
             </button>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-4">
+          <form className="space-y-4 mt-4">
             <div className="space-y-2">
               <Label htmlFor="title">
                 Job Title<span className="text-destructive">*</span>
@@ -214,27 +236,92 @@ export default function JobDialog({
               )}
             </div>
 
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="type">
+                  Job Type<span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  onValueChange={(value) => handleFieldChange("type", value)}
+                  value={existingJob?.type}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select job type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="full-time">Full Time</SelectItem>
+                    <SelectItem value="part-time">Part Time</SelectItem>
+                    <SelectItem value="contract">Contract</SelectItem>
+                    <SelectItem value="internship">Internship</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.type && (
+                  <p className="text-xs text-destructive">
+                    {errors.type.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="workArrangement">
+                  Work Arrangement<span className="text-destructive">*</span>
+                </Label>
+                <Select
+                  onValueChange={(value) =>
+                    handleFieldChange("workArrangement", value)
+                  }
+                  value={existingJob?.work_arrangement}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select arrangement" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="onsite">Onsite</SelectItem>
+                    <SelectItem value="remote">Remote</SelectItem>
+                    <SelectItem value="hybrid">Hybrid</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.workArrangement && (
+                  <p className="text-xs text-destructive">
+                    {errors.workArrangement.message}
+                  </p>
+                )}
+              </div>
+            </div>
+
             <div className="space-y-2">
-              <Label htmlFor="type">
-                Job Type<span className="text-destructive">*</span>
+              <Label htmlFor="location">
+                Location<span className="text-destructive">*</span>
               </Label>
-              <Select
-                onValueChange={(value) => handleFieldChange("type", value)}
-                value={existingJob?.type}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select job type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="full-time">Full Time</SelectItem>
-                  <SelectItem value="part-time">Part Time</SelectItem>
-                  <SelectItem value="contract">Contract</SelectItem>
-                  <SelectItem value="internship">Internship</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.type && (
+              <Input
+                id="location"
+                placeholder="Ex: Kota Jakarta Selatan - DKI Jakarta"
+                {...register("location", {
+                  onChange: (e) =>
+                    handleFieldChange("location", e.target.value),
+                })}
+              />
+              {errors.location && (
                 <p className="text-xs text-destructive">
-                  {errors.type.message}
+                  {errors.location.message}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company">
+                Company<span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="company"
+                placeholder="Ex: PT. Mencari"
+                {...register("company", {
+                  onChange: (e) => handleFieldChange("company", e.target.value),
+                })}
+              />
+              {errors.company && (
+                <p className="text-xs text-destructive">
+                  {errors.company.message}
                 </p>
               )}
             </div>
@@ -245,7 +332,7 @@ export default function JobDialog({
               </Label>
               <Textarea
                 id="description"
-                placeholder="Ex..."
+                placeholder="Write the job description here..."
                 className="min-h-[100px]"
                 {...register("description", {
                   onChange: (e) =>
@@ -417,20 +504,37 @@ export default function JobDialog({
                   Delete Job
                 </Button>
               )}
-              <Button
-                type="submit"
-                size="lg"
-                className="px-8 ml-auto"
-                disabled={loading || isDeleting}
-              >
-                {loading
-                  ? isEditMode
-                    ? "Updating..."
-                    : "Publishing..."
-                  : isEditMode
-                  ? "Update Job"
-                  : "Publish Job"}
-              </Button>
+              <div className="flex items-center ml-auto">
+                <Button
+                  type="button"
+                  size="sm"
+                  className="rounded-r-none border-none"
+                  disabled={loading || isDeleting}
+                  onClick={handlePublish}
+                >
+                  {loading
+                    ? "Please wait"
+                    : isEditMode
+                    ? "Update Job"
+                    : "Publish Job"}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      size="sm"
+                      className="rounded-l-none"
+                      variant="outline"
+                    >
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={handleSaveAsDraft}>
+                      {loading ? "Saving..." : "Save as Draft"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </form>
         </DialogContent>

@@ -84,6 +84,9 @@ export async function POST(request: NextRequest) {
       title: validatedData.title,
       slug: body.slug,
       type: validatedData.type,
+      work_arrangement: validatedData.workArrangement,
+      location: validatedData.location,
+      company: validatedData.company,
       description: validatedData.description,
       started_at: validatedData.startedAt,
       ended_at: validatedData.endedAt,
@@ -99,11 +102,11 @@ export async function POST(request: NextRequest) {
           },
         }),
       config: validatedData.config,
+      status: body.status,
     };
 
     const supabase = await createClient();
     const { error } = await supabase.from("jobs").insert(requestData);
-
     if (error) {
       throw error;
     }
