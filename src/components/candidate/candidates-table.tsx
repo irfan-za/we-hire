@@ -41,6 +41,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { BulkActions } from "./bulk-actions";
+import CandidateDetailDialog from "./candidate-detail-dialog";
+import { Button } from "@/components/ui/button";
 import {
   useReactTable,
   getCoreRowModel,
@@ -139,6 +141,10 @@ export default function CandidatesTable({
   const searchParams = useSearchParams();
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([]);
   const [isDeletingBulk, setIsDeletingBulk] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(
+    null
+  );
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
 
   const [columnOrder, setColumnOrder] = useState<ColumnOrderState>(() => {
     if (typeof window === "undefined") return [];
@@ -295,7 +301,7 @@ export default function CandidatesTable({
         ),
         cell: ({ row }) => (
           <Checkbox
-            className="ml-7 mr-4 border-2"
+            className="mr-4"
             checked={row.getIsSelected()}
             onCheckedChange={(value) => row.toggleSelected(!!value)}
           />
@@ -392,6 +398,26 @@ export default function CandidatesTable({
           );
         },
         size: 250,
+      },
+      {
+        id: "actions",
+        header: "ACTIONS",
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setSelectedCandidate(row.original);
+              setIsDetailDialogOpen(true);
+            }}
+            className="h-8 px-2 text-primary font-medium hover:text-teal-700 cursor-pointer"
+          >
+            Details
+          </Button>
+        ),
+        size: 120,
+        enableResizing: false,
+        enableSorting: false,
       },
     ],
     [sortByParam, sortOrderParam, handleToggleSortFullName]
@@ -537,6 +563,7 @@ export default function CandidatesTable({
                       <TableCell
                         key={cell.id}
                         style={{ width: cell.column.getSize() }}
+                        className="pl-8"
                       >
                         {flexRender(
                           cell.column.columnDef.cell,
@@ -667,6 +694,12 @@ export default function CandidatesTable({
           )}
         </div>
       )}
+
+      <CandidateDetailDialog
+        candidate={selectedCandidate}
+        open={isDetailDialogOpen}
+        onOpenChange={setIsDetailDialogOpen}
+      />
     </div>
   );
 }

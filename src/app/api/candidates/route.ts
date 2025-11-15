@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/utils/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
-import { candidateSchema } from "@/schemas/candidate";
 
 export async function GET(request: NextRequest) {
   try {
@@ -26,7 +25,7 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("candidates")
       .select(
-        "id,full_name,email,phone,date_of_birth,domicile,gender,linkedin_link",
+        "id,full_name,profile_picture,email,phone,date_of_birth,domicile,gender,linkedin_link,created_at",
         { count: "exact" }
       )
       .eq("job_id", jobId);

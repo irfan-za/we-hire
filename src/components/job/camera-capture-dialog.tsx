@@ -84,6 +84,7 @@ export default function CameraCaptureDialog({
     }
   };
   const [gestureState, setGestureState] = useState<GestureState | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   useHandSequenceDetector({
     videoRef,
@@ -91,13 +92,31 @@ export default function CameraCaptureDialog({
     sequence: [1, 2, 3],
     requiredFramesPerPose: 6,
     onSequenceComplete: () => {
-      capturePhoto();
-      setGestureState(null);
+      setCountdown(3);
     },
     onGestureStateChange: (state) => {
       setGestureState(state);
     },
   });
+
+  useEffect(() => {
+    if (countdown === null) return;
+
+    if (countdown === 0) {
+      const timer = setTimeout(() => {
+        capturePhoto();
+        setGestureState(null);
+        setCountdown(null);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+
+    const timer = setTimeout(() => {
+      setCountdown(countdown - 1);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [countdown, capturePhoto]);
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -136,7 +155,7 @@ export default function CameraCaptureDialog({
                   style={{ transform: "scaleX(-1)" }}
                 />
 
-                {gestureState && (
+                {gestureState && !countdown && (
                   <div className="absolute top-4 left-4 bg-black/70 text-white px-4 py-3 rounded-lg backdrop-blur-sm">
                     <div className="text-sm font-semibold mb-2">
                       Raise Your Hand to Capture
@@ -171,6 +190,19 @@ export default function CameraCaptureDialog({
                     <div className="text-xs text-gray-300 mt-2">
                       Detected: {gestureState.detectedFingers} finger(s) | Hold
                       steady...
+                    </div>
+                  </div>
+                )}
+
+                {countdown !== null && (
+                  <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="text-8xl font-bold text-white mb-4 animate-pulse">
+                        {countdown === 0 ? "📸" : countdown}
+                      </div>
+                      <div className="text-xl text-white font-semibold">
+                        {countdown === 0 ? "Smile!" : "Get Ready!"}
+                      </div>
                     </div>
                   </div>
                 )}

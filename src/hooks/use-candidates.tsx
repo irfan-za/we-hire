@@ -4,6 +4,7 @@ export type Candidate = {
   id: string;
   job_id: string;
   full_name: string;
+  profile_picture: string;
   email: string;
   phone: string;
   date_of_birth: string;
