@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -14,11 +13,18 @@ import { Camera, X, RotateCcw, Upload } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { useRef, useEffect, useState } from "react";
+import { useHandSequenceDetector } from "@/hooks/use-hand-sequence-detector";
 
 interface CameraCaptureDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCapture: (imageFile: File, previewUrl: string) => void;
+}
+interface GestureState {
+  currentStep: number;
+  totalSteps: number;
+  detectedFingers: number;
+  progress: number;
 }
 
 export default function CameraCaptureDialog({
@@ -77,7 +83,21 @@ export default function CameraCaptureDialog({
       reader.readAsDataURL(file);
     }
   };
+  const [gestureState, setGestureState] = useState<GestureState | null>(null);
 
+  useHandSequenceDetector({
+    videoRef,
+    enabled: isStreaming && !previewUrl,
+    sequence: [1, 2, 3],
+    requiredFramesPerPose: 6,
+    onSequenceComplete: () => {
+      capturePhoto();
+      setGestureState(null);
+    },
+    onGestureStateChange: (state) => {
+      setGestureState(state);
+    },
+  });
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
@@ -106,14 +126,55 @@ export default function CameraCaptureDialog({
             )}
 
             {(isStreaming || isCameraOpen) && !previewUrl && (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full h-full object-cover"
-                style={{ transform: "scaleX(-1)" }}
-              />
+              <>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                  style={{ transform: "scaleX(-1)" }}
+                />
+
+                {gestureState && (
+                  <div className="absolute top-4 left-4 bg-black/70 text-white px-4 py-3 rounded-lg backdrop-blur-sm">
+                    <div className="text-sm font-semibold mb-2">
+                      Raise Your Hand to Capture
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {[1, 2, 3].map((step) => (
+                        <div
+                          key={step}
+                          className={`flex flex-col items-center gap-1 ${
+                            step === gestureState.currentStep ? "scale-110" : ""
+                          }`}
+                        >
+                          <div
+                            className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold transition-all ${
+                              step < gestureState.currentStep
+                                ? "bg-primary text-white"
+                                : step === gestureState.currentStep
+                                ? "bg-secondary text-white animate-pulse"
+                                : "bg-gray-600 text-gray-400"
+                            }`}
+                          >
+                            {step < gestureState.currentStep ? "✓" : step}
+                          </div>
+                          <div className="text-xs">
+                            {step === 1 && "☝️"}
+                            {step === 2 && "✌️"}
+                            {step === 3 && "🤟"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="text-xs text-gray-300 mt-2">
+                      Detected: {gestureState.detectedFingers} finger(s) | Hold
+                      steady...
+                    </div>
+                  </div>
+                )}
+              </>
             )}
 
             {previewUrl && (
@@ -156,15 +217,20 @@ export default function CameraCaptureDialog({
             )}
 
             {isStreaming && !previewUrl && (
-              <div className="flex gap-2">
-                <Button onClick={capturePhoto} className="flex-1" size="lg">
-                  <Camera className="w-4 h-4 mr-2" />
-                  Capture Photo
+              <>
+                <div className="text-sm text-muted-foreground mb-3 text-center">
+                  Show your hand: 1 finger ☝️, then 2 ✌️, then 3 🤟
+                </div>
+                <Button
+                  onClick={stopCamera}
+                  variant="outline"
+                  size="lg"
+                  className="w-full"
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
                 </Button>
-                <Button onClick={stopCamera} variant="outline" size="lg">
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+              </>
             )}
 
             {previewUrl && (
