@@ -68,9 +68,7 @@ export default function JobDialog({
   const [loading, setLoading] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [config, setConfig] = useState<Config[]>(configFields);
-  const [status, setStatus] = useState<JobStatus>(
-    existingJob ? existingJob.status : "active"
-  );
+  let status: JobStatus = existingJob ? existingJob.status : "active";
 
   const isEditMode = !!existingJob;
   const { mutate: createJob } = useCreateJob();
@@ -125,12 +123,12 @@ export default function JobDialog({
   };
 
   const handlePublish = () => {
-    setStatus("active");
+    status = "active";
     handleSubmit(onSubmit)();
   };
 
   const handleSaveAsDraft = () => {
-    setStatus("draft");
+    status = "draft";
     handleSubmit(onSubmit)();
   };
 

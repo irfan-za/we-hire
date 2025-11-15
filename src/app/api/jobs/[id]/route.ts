@@ -56,6 +56,7 @@ export async function PATCH(
       started_at: validatedData.startedAt,
       ended_at: validatedData.endedAt,
       config: validatedData.config,
+      status: body.status,
       updated_at: new Date().toISOString(),
     };
 
