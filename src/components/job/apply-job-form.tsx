@@ -10,10 +10,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { candidateSchema, CandidateFormData } from "@/schemas/candidate";
+import {
+  candidateSchema,
+  CandidateFormData,
+  createDynamicCandidateSchema,
+} from "@/schemas/candidate";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Camera, User } from "lucide-react";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -55,7 +59,12 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
     const dd = String(d.getDate()).padStart(2, "0");
     return `${yyyy}-${mm}-${dd}`;
   })();
-  const config: Config[] = job.config || [];
+
+  const config: Config[] = useMemo(() => job.config || [], [job.config]);
+  const dynamicSchema = useMemo(
+    () => createDynamicCandidateSchema(config),
+    [config]
+  );
 
   const getFieldStatus = (key: string): JobConfigStatus => {
     const field = config.find((c) => c.key === key);
@@ -76,8 +85,8 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<CandidateFormData>({
-    resolver: zodResolver(candidateSchema),
+  } = useForm<Partial<CandidateFormData>>({
+    resolver: zodResolver(dynamicSchema),
   });
 
   const handleFieldChange = <K extends keyof CandidateFormData>(
@@ -93,19 +102,20 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
     setValue("profilePicture", imageFile as any);
   };
 
-  const onSubmit = async (data: CandidateFormData) => {
+  const onSubmit = async (data: Partial<CandidateFormData>) => {
     setLoading(true);
 
     try {
       const formData = new FormData();
       formData.append("jobId", job.id);
-      formData.append("fullName", data.fullName);
-      formData.append("gender", data.gender);
-      formData.append("domicile", data.domicile);
-      formData.append("email", data.email);
-      formData.append("phoneNumber", data.phoneNumber);
-      formData.append("linkedinLink", data.linkedinLink);
-      formData.append("dateOfBirth", data.dateOfBirth);
+
+      if (data.fullName) formData.append("fullName", data.fullName);
+      if (data.gender) formData.append("gender", data.gender);
+      if (data.domicile) formData.append("domicile", data.domicile);
+      if (data.email) formData.append("email", data.email);
+      if (data.phoneNumber) formData.append("phoneNumber", data.phoneNumber);
+      if (data.linkedinLink) formData.append("linkedinLink", data.linkedinLink);
+      if (data.dateOfBirth) formData.append("dateOfBirth", data.dateOfBirth);
 
       if (profilePictureFile) {
         formData.append("profilePicture", profilePictureFile);
@@ -264,6 +274,7 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
                   value="male"
                   {...register("gender")}
                   className="w-4 h-4"
+                  defaultChecked
                 />
                 <span className="text-sm">He/him (Male)</span>
               </label>

@@ -2,16 +2,6 @@
 
 import { useEffect, useRef } from "react";
 
-/**
- * useHandSequenceDetector
- *
- * - videoRef: HTMLVideoElement ref of the camera feed (required)
- * - onSequenceComplete: callback invoked when full sequence detected (e.g., call capturePhoto)
- * - sequence: array of finger counts to detect in order (default [1,2,3])
- * - requiredFramesPerPose: how many consecutive frames required to accept a pose (debounce)
- *
- * NOTE: this hook uses MediaPipe Hands (web). It does not manage starting/stopping camera stream.
- */
 export function useHandSequenceDetector({
   videoRef,
   onSequenceComplete,

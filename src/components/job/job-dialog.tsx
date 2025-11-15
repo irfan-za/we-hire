@@ -50,12 +50,13 @@ interface JobDialogProps {
 }
 
 const configFields: Config[] = [
-  { key: "full-name", status: "mandatory" },
   { key: "profile-picture", status: "mandatory" },
+  { key: "full-name", status: "mandatory" },
+  { key: "date-of-birth", status: "mandatory" },
   { key: "gender", status: "mandatory" },
   { key: "domicile", status: "mandatory" },
-  { key: "email", status: "mandatory" },
   { key: "phone-number", status: "mandatory" },
+  { key: "email", status: "mandatory" },
   { key: "linkedin-link", status: "mandatory" },
 ];
 
