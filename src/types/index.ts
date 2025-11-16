@@ -29,4 +29,5 @@ export type Job = {
     display_text: string;
   };
   config?: Array<Config>;
+  isApplied?: boolean;
 };

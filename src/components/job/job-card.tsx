@@ -64,7 +64,14 @@ export default function JobCard({
           </div>
         </div>
       )}
-      <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+        {!onManageClick && !onEditClick && job.isApplied && (
+          <Badge variant="default" className="shrink-0">
+            Applied
+          </Badge>
+        )}
+      </div>
 
       <div className="flex flex-col gap-2">
         <div className="text-sm text-muted-foreground flex items-center gap-2">

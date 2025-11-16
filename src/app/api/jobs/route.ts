@@ -51,12 +51,38 @@ export async function GET(request: NextRequest) {
     if (error) {
       throw error;
     }
+    let jobsWithApplied = data || [];
+    const {
+      data: { user: currentUser },
+    } = await supabase.auth.getUser();
+
+    if (currentUser && jobsWithApplied.length > 0) {
+      const jobIds = jobsWithApplied.map((j: any) => j.id);
+      const { data: candidates } = await supabase
+        .from("candidates")
+        .select("job_id")
+        .eq("auth_id", currentUser.id)
+        .in("job_id", jobIds);
+
+      const appliedSet = new Set(
+        (candidates || []).map((candidate) => candidate.job_id)
+      );
+      jobsWithApplied = jobsWithApplied.map((job: any) => ({
+        ...job,
+        isApplied: appliedSet.has(job.id),
+      }));
+    } else {
+      jobsWithApplied = jobsWithApplied.map((job: any) => ({
+        ...job,
+        isApplied: false,
+      }));
+    }
 
     const totalPages = Math.ceil((count || 0) / limit);
 
     return NextResponse.json(
       {
-        data: data || [],
+        data: jobsWithApplied,
         pagination: {
           page,
           limit,
