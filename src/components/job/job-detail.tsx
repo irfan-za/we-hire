@@ -37,9 +37,15 @@ export default function JobDetail({ job }: JobDetailProps) {
               <span className="capitalize">{job.work_arrangement}</span>
             </div>
           </div>
-          <Button asChild className="hidden lg:block">
-            <Link href={`/apply-job/${job.slug}`}>Apply</Link>
-          </Button>
+          {job.isApplied ? (
+            <Button className="hidden lg:block" disabled>
+              Applied
+            </Button>
+          ) : (
+            <Button asChild className="hidden lg:block">
+              <Link href={`/apply-job/${job.slug}`}>Apply</Link>
+            </Button>
+          )}
         </div>
       </div>
 
@@ -72,9 +78,15 @@ export default function JobDetail({ job }: JobDetailProps) {
       </div>
 
       <div className="lg:hidden sticky bottom-0 bg-white border-t border-border p-2">
-        <Button className="w-full" asChild>
-          <Link href={`/apply-job/${job.slug}`}>Apply</Link>
-        </Button>
+        {job.isApplied ? (
+          <Button className="w-full" disabled>
+            Applied
+          </Button>
+        ) : (
+          <Button className="w-full" asChild>
+            <Link href={`/apply-job/${job.slug}`}>Apply</Link>
+          </Button>
+        )}
       </div>
     </div>
   );

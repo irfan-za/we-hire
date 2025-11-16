@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect, RedirectType } from "next/navigation";
 import ApplyJobForm from "@/components/job/apply-job-form";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
@@ -37,9 +37,26 @@ async function getJobBySlug(slug: string): Promise<JobHeader | null> {
 export default async function ApplyJobPage({ params }: PageProps) {
   const { slug } = await params;
   const job = await getJobBySlug(slug);
-
   if (!job) {
     notFound();
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user: currentUser },
+  } = await supabase.auth.getUser();
+
+  if (currentUser) {
+    const { data: existingApplications } = await supabase
+      .from("candidates")
+      .select("id")
+      .eq("job_id", job.id)
+      .eq("auth_id", currentUser.id)
+      .limit(1);
+
+    if (existingApplications && existingApplications.length > 0) {
+      return redirect("/jobs", RedirectType.replace);
+    }
   }
 
   return (

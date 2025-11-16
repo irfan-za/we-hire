@@ -46,7 +46,6 @@ export default function CandidateDetailDialog({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Profile Section */}
           <div className="flex items-center gap-4 pb-4 border-b">
             <Avatar className="h-20 w-20">
               <AvatarImage
@@ -68,7 +67,6 @@ export default function CandidateDetailDialog({
             </div>
           </div>
 
-          {/* Contact Information */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
               Contact Information
@@ -117,7 +115,6 @@ export default function CandidateDetailDialog({
             </div>
           </div>
 
-          {/* Personal Information */}
           <div className="space-y-3">
             <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
               Personal Information
@@ -153,7 +150,6 @@ export default function CandidateDetailDialog({
             </div>
           </div>
 
-          {/* Application Info */}
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
               Applied on{" "}
