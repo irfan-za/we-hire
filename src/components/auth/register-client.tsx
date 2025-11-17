@@ -63,9 +63,9 @@ export default function RegisterClient() {
   };
 
   return (
-    <section className="flex h-[calc(100vh-4rem)] w-full items-center bg-muted py-16">
+    <section className="flex h-[calc(100vh-4rem)] w-full items-center py-16">
       <main className="mx-auto w-full max-w-md p-6 md:p-3">
-        <div className="mt-7 rounded-xl border border-border bg-accent/40 shadow-sm">
+        <div className="mt-7 rounded-xl border border-border  shadow-sm">
           <div className="p-4 sm:p-7">
             <div className="text-center">
               <h1 className="block text-2xl font-bold text-foreground">
@@ -74,7 +74,7 @@ export default function RegisterClient() {
               <p className="mt-2 text-sm text-accent-foreground">
                 Already have an account?{" "}
                 <Link
-                  className="font-medium text-primary decoration-2 hover:underline"
+                  className="font-medium text-secondary decoration-2 hover:underline"
                   href="/auth/login"
                 >
                   Login here.
@@ -97,7 +97,7 @@ export default function RegisterClient() {
                         type="text"
                         id="full_name"
                         {...register("full_name")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="full_name-error"
                       />
                     </div>
@@ -123,7 +123,7 @@ export default function RegisterClient() {
                         type="email"
                         id="email"
                         {...register("email")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="email-error"
                       />
                     </div>
@@ -149,7 +149,7 @@ export default function RegisterClient() {
                         type={passwordVisible ? "text" : "password"}
                         id="password"
                         {...register("password")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="password-error"
                       />
                       <button
@@ -186,7 +186,7 @@ export default function RegisterClient() {
                         type={confirmPasswordVisible ? "text" : "password"}
                         id="confirmPassword"
                         {...register("confirmPassword")}
-                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-3 py-1 md:py-2 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="confirmPassword-error"
                       />
                       <button
@@ -213,7 +213,11 @@ export default function RegisterClient() {
                     )}
                   </div>
 
-                  <Button disabled={loading} className="font-medium">
+                  <Button
+                    disabled={loading}
+                    variant={"secondary"}
+                    className="font-medium"
+                  >
                     {loading ? "Creating account..." : "Register"}
                   </Button>
                 </div>

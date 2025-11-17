@@ -464,8 +464,8 @@ export default function JobDialog({
                         onClick={() => handleStatusChange(index, "mandatory")}
                         className={`px-3 py-1 text-xs rounded-full border transition-colors ${
                           config.status === "mandatory"
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background border-border hover:bg-accent"
+                            ? "text-primary border-primary"
+                            : "bg-background border-border hover:bg-primary/10"
                         }`}
                       >
                         Mandatory
@@ -476,8 +476,8 @@ export default function JobDialog({
                         onClick={() => handleStatusChange(index, "optional")}
                         className={`px-3 py-1 text-xs rounded-full border transition-colors disabled:bg-muted ${
                           config.status === "optional"
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background border-border hover:bg-accent"
+                            ? "text-primary border-primary"
+                            : "bg-background border-border hover:bg-primary/10"
                         }`}
                       >
                         Optional
@@ -488,8 +488,8 @@ export default function JobDialog({
                         onClick={() => handleStatusChange(index, "off")}
                         className={`px-3 py-1 text-xs rounded-full border transition-colors disabled:bg-muted ${
                           config.status === "off"
-                            ? "bg-secondary text-secondary-foreground border-secondary"
-                            : "bg-background border-border hover:bg-accent"
+                            ? "text-secondary border-secondary"
+                            : "bg-background border-border hover:bg-primary/10"
                         }`}
                       >
                         Off

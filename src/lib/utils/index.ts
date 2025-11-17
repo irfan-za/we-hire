@@ -63,15 +63,6 @@ const getWorkArrangementVariant = (arrangement: string) => {
       return "outline";
   }
 };
-const getExperienceLevel = (type: string) => {
-  const typeMap: Record<string, string> = {
-    internship: "Associate (0 - 3 years)",
-    "full-time": "Mid-Level (3 - 5 years)",
-    "part-time": "Associate (0 - 3 years)",
-    contract: "Mid-Level (3 - 5 years)",
-  };
-  return typeMap[type.toLowerCase()] || "All levels";
-};
 
 export {
   cn,
@@ -80,5 +71,4 @@ export {
   formatDate,
   getStatusVariant,
   getWorkArrangementVariant,
-  getExperienceLevel,
 };

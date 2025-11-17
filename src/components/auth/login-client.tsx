@@ -57,9 +57,9 @@ export default function LoginClient() {
   };
 
   return (
-    <section className="flex h-[calc(100vh-4rem)]  w-full items-center bg-muted py-16">
+    <section className="flex h-[calc(100vh-4rem)]  w-full items-center py-16">
       <main className="mx-auto w-full max-w-md p-6">
-        <div className="mt-7 rounded-xl border border-border bg-accent/40 shadow-sm">
+        <div className="mt-7 rounded-xl border border-border shadow-sm">
           <div className="p-4 sm:p-7">
             <div className="text-center">
               <h1 className="block text-2xl font-bold text-foreground">
@@ -68,7 +68,7 @@ export default function LoginClient() {
               <p className="mt-2 text-sm text-accent-foreground">
                 Don&apos;t have an account?{" "}
                 <Link
-                  className="font-medium text-primary decoration-2 hover:underline"
+                  className="font-medium text-secondary decoration-2 hover:underline"
                   href="/auth/register"
                 >
                   Register here.
@@ -91,7 +91,7 @@ export default function LoginClient() {
                         type="email"
                         id="email"
                         {...register("email")}
-                        className="block w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="email-error"
                       />
                     </div>
@@ -119,7 +119,7 @@ export default function LoginClient() {
                         type={passwordVisible ? "text" : "password"}
                         id="password"
                         {...register("password")}
-                        className="block w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50 bg-accent"
+                        className="block w-full rounded-lg border border-border px-4 py-3 text-sm focus:border-primary focus:ring-primary disabled:pointer-events-none disabled:opacity-50"
                         aria-describedby="password-error"
                       />
                       <button
@@ -144,7 +144,11 @@ export default function LoginClient() {
                     )}
                   </div>
 
-                  <Button disabled={loading} className="font-medium">
+                  <Button
+                    disabled={loading}
+                    variant={"secondary"}
+                    className="font-medium"
+                  >
                     {loading ? "Logging in..." : "Login"}
                   </Button>
                 </div>

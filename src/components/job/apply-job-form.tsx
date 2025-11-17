@@ -264,7 +264,7 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
                   type="radio"
                   value="female"
                   {...register("gender")}
-                  className="w-4 h-4"
+                  className="w-4 h-4 accent-primary"
                 />
                 <span className="text-sm">She/her (Female)</span>
               </label>
@@ -273,7 +273,7 @@ export default function ApplyJobForm({ job }: ApplyJobFormProps) {
                   type="radio"
                   value="male"
                   {...register("gender")}
-                  className="w-4 h-4"
+                  className="w-4 h-4 accent-primary"
                   defaultChecked
                 />
                 <span className="text-sm">He/him (Male)</span>
