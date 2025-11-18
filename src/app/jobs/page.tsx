@@ -36,7 +36,8 @@ async function fetchJobs(
         "id,title,slug,description,type,started_at,ended_at,status,work_arrangement,location,company,salary_range,config",
         { count: "exact" }
       )
-      .eq("status", "active");
+      .eq("status", "active")
+    .limit(100);
 
     if (type) {
       query = query.eq("type", type);
