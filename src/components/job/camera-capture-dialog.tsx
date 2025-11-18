@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useCamera } from "@/hooks/use-camera";
-import { Camera, X, RotateCcw, Upload } from "lucide-react";
+import { Camera, X, RotateCcw, Upload, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { useRef, useEffect, useState } from "react";
@@ -121,9 +121,9 @@ export default function CameraCaptureDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Take a Profile Picture</DialogTitle>
+          <DialogTitle>Raise Your Hand to Capture</DialogTitle>
           <DialogDescription>
-            Use your camera to take a photo or upload from your device
+            We&apos;ll take the photo once your hand pose is detected.
           </DialogDescription>
         </DialogHeader>
 
@@ -197,12 +197,12 @@ export default function CameraCaptureDialog({
                 {countdown !== null && (
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
                     <div className="text-center">
-                      <div className="text-8xl font-bold text-white mb-4 animate-pulse">
-                        {countdown === 0 ? "📸" : countdown}
-                      </div>
-                      <div className="text-xl text-white font-semibold">
-                        {countdown === 0 ? "Smile!" : "Get Ready!"}
-                      </div>
+                      <p className="text-lg text-white font-semibold mb-4">
+                        Capturing photo in:
+                      </p>
+                      <p className="text-8xl font-bold text-white animate-pulse">
+                        {countdown}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -250,8 +250,38 @@ export default function CameraCaptureDialog({
 
             {isStreaming && !previewUrl && (
               <>
-                <div className="text-sm text-muted-foreground mb-3 text-center">
-                  Show your hand: 1 finger ☝️, then 2 ✌️, then 3 🤟
+                <p className="text-sm text-muted-foreground">
+                  To take a picture, follow the hand poses in the order shown
+                  below. The system will automatically capture the image once
+                  the final pose is detected.
+                </p>
+                <div className="mb-3 flex justify-center items-center space-x-3">
+                  <div className="w-14 h-14 bg-muted flex justify-center items-center">
+                    <Image
+                      src={"/images/hand-gestures/1.svg"}
+                      alt="hand gesture 1"
+                      width={16}
+                      height={16}
+                    />
+                  </div>
+                  <ChevronRight />
+                  <div className="w-14 h-14 bg-muted flex justify-center items-center">
+                    <Image
+                      src={"/images/hand-gestures/2.svg"}
+                      alt="hand gesture 2"
+                      width={16}
+                      height={16}
+                    />
+                  </div>
+                  <ChevronRight />
+                  <div className="w-14 h-14 bg-muted flex justify-center items-center">
+                    <Image
+                      src={"/images/hand-gestures/3.svg"}
+                      alt="hand gesture 3"
+                      width={16}
+                      height={16}
+                    />
+                  </div>
                 </div>
                 <Button
                   onClick={stopCamera}
